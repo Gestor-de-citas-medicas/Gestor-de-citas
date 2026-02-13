@@ -1,0 +1,244 @@
+:root{
+  --bg: #f6f9fc;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --primary: #0ea5e9;
+  --primary-dark: #0284c7;
+  --ring: rgba(14,165,233,.25);
+  --border: #e2e8f0;
+  --danger: #ef4444;
+  --shadow: 0 16px 40px rgba(2,8,23,.08);
+}
+
+*{ box-sizing:border-box; }
+html, body { height: 100%; }
+
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* FULL SCREEN WRAP */
+.auth-wrap{
+  min-height: 100vh;
+  display:flex;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+/* FULL SCREEN CARD (PANEL LAYOUT) */
+.auth-card{
+  width: 100%;
+  min-height: 100vh;
+  display:grid;
+  grid-template-columns: 1.15fr 0.85fr;
+}
+
+/* LEFT SIDE (HOSPITAL STYLE) */
+.auth-side{
+  padding: 64px clamp(24px, 6vw, 84px);
+  background:
+    radial-gradient(1200px 600px at 15% 10%, rgba(14,165,233,.14), transparent 55%),
+    radial-gradient(900px 500px at 85% 20%, rgba(34,197,94,.10), transparent 55%),
+    linear-gradient(180deg, #f8fbff 0%, #f4f8ff 100%);
+  border-right: 1px solid var(--border);
+  display:flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 28px;
+}
+
+.side-brand{
+  display:flex;
+  align-items:center;
+  gap: 14px;
+}
+
+.brand-badge{
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display:grid;
+  place-items:center;
+  background: rgba(14,165,233,.14);
+  border: 1px solid rgba(14,165,233,.22);
+  color: #0f172a;
+}
+
+.brand-title{
+  display:flex;
+  flex-direction:column;
+  line-height:1.1;
+}
+.brand-title strong{
+  font-size: 22px;
+  letter-spacing: .2px;
+}
+.brand-title span{
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.side-headline{
+  font-size: clamp(26px, 2.2vw, 40px);
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.side-text{
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.55;
+  max-width: 56ch;
+}
+
+.side-list{
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display:grid;
+  gap: 10px;
+  color: #334155;
+  font-size: 14px;
+}
+.side-list li{
+  display:flex;
+  gap: 10px;
+  align-items:flex-start;
+}
+.dot{
+  width: 10px;
+  height: 10px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: rgba(14,165,233,.8);
+  box-shadow: 0 0 0 4px rgba(14,165,233,.14);
+  flex: 0 0 auto;
+}
+
+/* RIGHT SIDE (FORM) */
+.auth-main{
+  background: #fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 64px clamp(24px, 5vw, 72px);
+}
+
+.form-shell{
+  width: min(520px, 100%);
+}
+
+h1{
+  margin: 0 0 10px 0;
+  font-size: 30px;
+  letter-spacing: -0.2px;
+}
+
+p.sub{
+  margin: 0 0 26px 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.form-row{
+  margin-bottom: 18px;
+}
+
+label{
+  display:block;
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 8px 2px;
+}
+
+input{
+  width: 100%;
+  padding: 14px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  outline: none;
+  background: #fff;
+  color: var(--text);
+  font-size: 16px;
+  transition: box-shadow .15s, border-color .15s;
+}
+
+input:focus{
+  border-color: rgba(14,165,233,.7);
+  box-shadow: 0 0 0 5px var(--ring);
+}
+
+.help{
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+.alert{
+  background: rgba(239,68,68,.08);
+  border: 1px solid rgba(239,68,68,.25);
+  color: #991b1b;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  margin-bottom: 18px;
+}
+
+.btn{
+  width: 100%;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 14px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor:pointer;
+  background: var(--primary);
+  color: #fff;
+  transition: transform .05s, background .15s;
+  margin-top: 6px;
+}
+
+.btn:hover{ background: var(--primary-dark); }
+.btn:active{ transform: translateY(1px); }
+
+.footer{
+  margin-top: 16px;
+  text-align:center;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.small-link{
+  color: var(--primary-dark);
+  text-decoration: none;
+}
+.small-link:hover{ text-decoration: underline; }
+
+.btn:focus{
+  outline: none;
+  box-shadow: 0 0 0 5px var(--ring);
+}
+
+/* RESPONSIVE: STACK PANELS ON SMALL SCREENS */
+@media (max-width: 900px){
+  .auth-card{
+    grid-template-columns: 1fr;
+  }
+  .auth-side{
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 36px 22px;
+  }
+  .auth-main{
+    padding: 36px 22px;
+  }
+  h1{ font-size: 26px; }
+}

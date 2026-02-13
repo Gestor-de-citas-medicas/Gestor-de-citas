@@ -1,0 +1,52 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}MAMP{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'accounts/css/auth.css' %}">
+</head>
+
+<body>
+  <main class="auth-wrap">
+    <section class="auth-card" aria-label="Autenticación">
+
+      <!-- Panel izquierdo: estilo hospital -->
+      <aside class="auth-side" aria-label="Información del sistema">
+        <div class="side-brand">
+          <div class="brand-badge" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M10.5 3.75h3v6.75h6.75v3h-6.75v6.75h-3V13.5H3.75v-3h6.75V3.75Z"
+                    stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="brand-title">
+            <strong>MAMP</strong>
+            <span>Medical Appointment Platform</span>
+          </div>
+        </div>
+
+        <h2 class="side-headline">Gestión de citas médica, clara y segura.</h2>
+        <p class="side-text">
+          Centraliza la programación, reprogramación y notificaciones de citas para pacientes, médicos y administradores.
+        </p>
+
+        <ul class="side-list">
+          <li><span class="dot"></span><span>Acceso por roles (Paciente / Médico / Admin)</span></li>
+          <li><span class="dot"></span><span>Evita doble reserva y conflictos de agenda</span></li>
+          <li><span class="dot"></span><span>Notificaciones y trazabilidad (audit logs)</span></li>
+        </ul>
+      </aside>
+
+      <!-- Panel derecho: formulario -->
+      <section class="auth-main" aria-label="Formulario">
+        <div class="form-shell">
+          {% block content %}{% endblock %}
+        </div>
+      </section>
+
+    </section>
+  </main>
+</body>
+</html>
