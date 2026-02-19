@@ -3,6 +3,10 @@ from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import redirect
+from .models import DoctorSchedule
+from .forms import DoctorScheduleForm
+from django.shortcuts import render
+
 
 
 def home(request):
@@ -41,7 +45,26 @@ def patient_dashboard(request):
 
 @login_required
 def doctor_dashboard(request):
-    return HttpResponse("Doctor dashboard ✅")
+    if request.user.role != "DOCTOR":
+        return redirect("home")
+
+    schedules = DoctorSchedule.objects.filter(doctor=request.user)
+
+    if request.method == "POST":
+        form = DoctorScheduleForm(request.POST)
+        if form.is_valid():
+            schedule = form.save(commit=False)
+            schedule.doctor = request.user
+            schedule.save()
+            return redirect("doctor_dashboard")
+    else:
+        form = DoctorScheduleForm()
+
+    return render(request, "accounts/doctor_dashboard.html", {
+        "form": form,
+        "schedules": schedules
+    })
+
 
 
 @login_required
