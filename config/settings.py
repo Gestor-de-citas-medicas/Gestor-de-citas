@@ -14,8 +14,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    "accounts",   # Authentication & roles
-    "appointments",  # NEW: medical appointment scheduling
+    "accounts",   # ✅ tu app
 ]
 
 MIDDLEWARE = [
@@ -33,8 +32,8 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],          # using app directories for templates
-        "APP_DIRS": True,    # this must be True to find templates in app folders
+        "DIRS": [],          # ok (usaremos templates dentro de la app)
+        "APP_DIRS": True,    # ✅ importante: que esté True
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
@@ -70,7 +69,7 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Usuario personalizado
+# ✅ Usuario personalizado
 AUTH_USER_MODEL = "accounts.User"
 
 # (opcional pero útil)

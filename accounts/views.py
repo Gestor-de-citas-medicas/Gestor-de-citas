@@ -36,17 +36,14 @@ class RoleBasedLoginView(LoginView):
 
 @login_required
 def patient_dashboard(request):
-    #  Redirect to appointments list instead of placeholder
-    return redirect("appointment_list")
+    return HttpResponse("Patient dashboard ✅")
 
 
 @login_required
 def doctor_dashboard(request):
-    #  Redirect to appointments list instead of placeholder
-    return redirect("appointment_list")
+    return HttpResponse("Doctor dashboard ✅")
 
 
 @login_required
 def admin_dashboard(request):
-    #  Redirect to appointments list instead of placeholder
-    return redirect("appointment_list")
+    return HttpResponse("Admin dashboard ✅")
