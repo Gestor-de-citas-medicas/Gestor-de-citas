@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Cancel Appointment | MAMP</title>
+  <link rel="stylesheet" href="{% static 'accounts/css/auth.css' %}">
+  <style>
+    body { background: #f6f9fc; font-family: ui-sans-serif, system-ui, sans-serif; margin: 0; }
+    .topbar {
+      background: #fff; border-bottom: 1px solid #e2e8f0;
+      padding: 14px 32px; display: flex; justify-content: space-between;
+    }
+    .topbar .brand { font-weight: 800; font-size: 18px; color: #0f172a; }
+    .topbar a { color: #0ea5e9; text-decoration: none; font-size: 13px; }
+    .container { max-width: 500px; margin: 60px auto; padding: 0 24px; }
+    .card {
+      background: #fff; border: 1px solid #fca5a5;
+      border-radius: 16px; padding: 36px 40px; text-align: center;
+      box-shadow: 0 4px 24px rgba(239,68,68,.08);
+    }
+    .icon { font-size: 44px; margin-bottom: 14px; }
+    h1 { font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 8px; }
+    .detail { font-size: 14px; color: #64748b; margin-bottom: 28px; line-height: 1.6; }
+    .detail strong { color: #0f172a; }
+    .actions { display: flex; gap: 12px; }
+    .btn-confirm {
+      flex: 1; background: #ef4444; color: #fff; font-weight: 700;
+      font-size: 15px; padding: 13px; border: none; border-radius: 12px;
+      cursor: pointer; transition: background .15s;
+    }
+    .btn-confirm:hover { background: #dc2626; }
+    .btn-back {
+      flex: 1; background: #f1f5f9; color: #475569; font-weight: 700;
+      font-size: 15px; padding: 13px; border: none; border-radius: 12px;
+      text-decoration: none; display: flex; align-items: center;
+      justify-content: center; cursor: pointer; transition: background .15s;
+    }
+    .btn-back:hover { background: #e2e8f0; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="brand">🏥 MAMP</span>
+  <a href="{% url 'appointment_list' %}">← Back</a>
+</div>
+
+<div class="container">
+  <div class="card">
+    <div class="icon">⚠️</div>
+    <h1>Cancel Appointment?</h1>
+    <p class="detail">
+      <strong>{{ appointment.date }}</strong> from
+      <strong>{{ appointment.start_time }}</strong> to <strong>{{ appointment.end_time }}</strong><br/>
+      with Dr. <strong>{{ appointment.doctor.get_full_name|default:appointment.doctor.username }}</strong>
+      {% if appointment.reason %}<br/>Reason: {{ appointment.reason }}{% endif %}
+    </p>
+    <form method="post">
+      {% csrf_token %}
+      <div class="actions">
+        <a href="{% url 'appointment_list' %}" class="btn-back">Keep it</a>
+        <button type="submit" class="btn-confirm">Yes, cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>
