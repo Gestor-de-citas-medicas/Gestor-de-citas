@@ -14,7 +14,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    "accounts",   # ✅ tu app
+    "accounts",   # tu app
+    "appointments",  # NEW: app para gestión de citas médicas
 ]
 
 MIDDLEWARE = [
