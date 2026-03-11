@@ -3,42 +3,41 @@ from django.contrib.auth.views import LogoutView
 from .views import (
     home,
     RoleBasedLoginView,
+    register_choice,
+    patient_register,
+    doctor_register,
     patient_dashboard,
     doctor_dashboard,
     admin_dashboard,
-    # Horarios recurrentes
     schedule_create,
     schedule_toggle,
     schedule_delete,
-    # Excepciones por fecha
     exception_create,
     exception_update,
     exception_delete,
-    # API calendario
     calendar_events,
 )
 
 urlpatterns = [
-    # ── Generales ────────────────────────────────────────────────
-    path("",             home,                        name="home"),
-    path("login/",       RoleBasedLoginView.as_view(), name="login"),
-    path("logout/",      LogoutView.as_view(),         name="logout"),
+    path("", home, name="home"),
+    path("login/", RoleBasedLoginView.as_view(), name="login"),
+    path("logout/", LogoutView.as_view(), name="logout"),
 
-    # ── Dashboards ───────────────────────────────────────────────
-    path("patient/",     patient_dashboard,            name="patient_dashboard"),
-    path("doctor/",      doctor_dashboard,             name="doctor_dashboard"),
-    path("admin-panel/", admin_dashboard,              name="admin_dashboard"),
+    path("register/", register_choice, name="register_choice"),
+    path("register/patient/", patient_register, name="patient_register"),
+    path("register/doctor/", doctor_register, name="doctor_register"),
 
-    # ── Horarios recurrentes (DoctorSchedule) ────────────────────
-    path("doctor/schedule/create/",           schedule_create, name="schedule_create"),
-    path("doctor/schedule/<int:pk>/toggle/",  schedule_toggle, name="schedule_toggle"),
-    path("doctor/schedule/<int:pk>/delete/",  schedule_delete, name="schedule_delete"),
+    path("patient/", patient_dashboard, name="patient_dashboard"),
+    path("doctor/", doctor_dashboard, name="doctor_dashboard"),
+    path("admin-panel/", admin_dashboard, name="admin_dashboard"),
 
-    # ── Excepciones por fecha (ScheduleException) ────────────────
-    path("doctor/exception/create/",          exception_create,  name="exception_create"),
-    path("doctor/exception/<int:pk>/update/", exception_update,  name="exception_update"),
-    path("doctor/exception/<int:pk>/delete/", exception_delete,  name="exception_delete"),
+    path("doctor/schedule/create/", schedule_create, name="schedule_create"),
+    path("doctor/schedule/<int:pk>/toggle/", schedule_toggle, name="schedule_toggle"),
+    path("doctor/schedule/<int:pk>/delete/", schedule_delete, name="schedule_delete"),
 
-    # ── API para FullCalendar ─────────────────────────────────────
-    path("doctor/calendar/events/",           calendar_events,   name="calendar_events"),
+    path("doctor/exception/create/", exception_create, name="exception_create"),
+    path("doctor/exception/<int:pk>/update/", exception_update, name="exception_update"),
+    path("doctor/exception/<int:pk>/delete/", exception_delete, name="exception_delete"),
+
+    path("doctor/calendar/events/", calendar_events, name="calendar_events"),
 ]

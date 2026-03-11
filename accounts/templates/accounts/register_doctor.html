@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro doctor</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f6f8fb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .card {
+            width: 100%;
+            max-width: 650px;
+            background: white;
+            padding: 32px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+        .field {
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d7dee7;
+            border-radius: 12px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            background: #1da1f2;
+            color: white;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .errorlist {
+            color: #dc2626;
+            margin: 8px 0 0;
+            padding-left: 18px;
+        }
+        .back {
+            display: inline-block;
+            margin-top: 16px;
+            color: #2563eb;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Registro de doctor</h1>
+        <p>Completa tu información profesional para crear tu cuenta.</p>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="field">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {{ field.errors }}
+                </div>
+            {% endfor %}
+            <button type="submit">Crear cuenta</button>
+        </form>
+
+        <a class="back" href="{% url 'register_choice' %}">Volver</a>
+    </div>
+</body>
+</html>

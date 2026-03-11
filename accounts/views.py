@@ -1,20 +1,30 @@
 from django.contrib.auth.views import LoginView
+from django.contrib.auth import login
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from django.views.decorators.http import require_http_methods
 from django.core.exceptions import ValidationError
-import json
 
 from .models import DoctorSchedule, ScheduleException
-from .forms import DoctorScheduleForm, ScheduleExceptionForm
+from .forms import (
+    DoctorScheduleForm,
+    ScheduleExceptionForm,
+    PatientRegisterForm,
+    DoctorRegisterForm,
+)
 
 
-# ── Helpers ──────────────────────────────────────────────────────────────────
+def redirect_by_role(user):
+    if user.role == "ADMIN":
+        return redirect("admin_dashboard")
+    if user.role == "DOCTOR":
+        return redirect("doctor_dashboard")
+    return redirect("patient_dashboard")
+
 
 def doctor_required(view_func):
-    """Decorator: exige login + rol DOCTOR."""
     @login_required
     def wrapper(request, *args, **kwargs):
         if request.user.role != "DOCTOR":
@@ -22,8 +32,6 @@ def doctor_required(view_func):
         return view_func(request, *args, **kwargs)
     return wrapper
 
-
-# ── Públicas ──────────────────────────────────────────────────────────────────
 
 def home(request):
     return redirect("login")
@@ -47,14 +55,50 @@ class RoleBasedLoginView(LoginView):
     def get_success_url(self):
         role = self.request.user.role
         destinations = {
-            "ADMIN":   "admin_dashboard",
-            "DOCTOR":  "doctor_dashboard",
+            "ADMIN": "admin_dashboard",
+            "DOCTOR": "doctor_dashboard",
             "PATIENT": "patient_dashboard",
         }
         return reverse_lazy(destinations.get(role, "patient_dashboard"))
 
 
-# ── Dashboards básicos ────────────────────────────────────────────────────────
+def register_choice(request):
+    if request.user.is_authenticated:
+        return redirect_by_role(request.user)
+    return render(request, "accounts/register_choice.html")
+
+
+def patient_register(request):
+    if request.user.is_authenticated:
+        return redirect_by_role(request.user)
+
+    if request.method == "POST":
+        form = PatientRegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect("patient_dashboard")
+    else:
+        form = PatientRegisterForm()
+
+    return render(request, "accounts/register_patient.html", {"form": form})
+
+
+def doctor_register(request):
+    if request.user.is_authenticated:
+        return redirect_by_role(request.user)
+
+    if request.method == "POST":
+        form = DoctorRegisterForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect("doctor_dashboard")
+    else:
+        form = DoctorRegisterForm()
+
+    return render(request, "accounts/register_doctor.html", {"form": form})
+
 
 @login_required
 def patient_dashboard(request):
@@ -66,20 +110,18 @@ def admin_dashboard(request):
     return HttpResponse("Admin dashboard ✅")
 
 
-# ── Doctor: dashboard principal ───────────────────────────────────────────────
-
 @doctor_required
 def doctor_dashboard(request):
-    schedules  = DoctorSchedule.objects.filter(doctor=request.user, is_active=True)
-    exceptions = ScheduleException.objects.filter(doctor=request.user).order_by("date", "start_time")
+    schedules = DoctorSchedule.objects.filter(doctor=request.user, is_active=True)
+    exceptions = ScheduleException.objects.filter(
+        doctor=request.user
+    ).order_by("date", "start_time")
 
     return render(request, "accounts/doctor_dashboard.html", {
-        "schedules":  schedules,
+        "schedules": schedules,
         "exceptions": exceptions,
     })
 
-
-# ── Doctor: horarios recurrentes (DoctorSchedule) ─────────────────────────────
 
 @doctor_required
 @require_http_methods(["POST"])
@@ -89,7 +131,7 @@ def schedule_create(request):
         schedule = form.save(commit=False)
         schedule.doctor = request.user
         try:
-            schedule.full_clean()   # dispara validaciones del modelo (solapamiento, etc.)
+            schedule.full_clean()
             schedule.save()
         except ValidationError as e:
             return JsonResponse({"ok": False, "errors": e.message_dict}, status=400)
@@ -100,7 +142,6 @@ def schedule_create(request):
 @doctor_required
 @require_http_methods(["POST"])
 def schedule_toggle(request, pk):
-    """Activa o pausa un horario recurrente sin borrarlo."""
     schedule = get_object_or_404(DoctorSchedule, pk=pk, doctor=request.user)
     schedule.is_active = not schedule.is_active
     schedule.save(update_fields=["is_active"])
@@ -114,8 +155,6 @@ def schedule_delete(request, pk):
     schedule.delete()
     return JsonResponse({"ok": True})
 
-
-# ── Doctor: excepciones por fecha (ScheduleException) ─────────────────────────
 
 @doctor_required
 @require_http_methods(["POST"])
@@ -136,7 +175,7 @@ def exception_create(request):
 @doctor_required
 @require_http_methods(["POST"])
 def exception_update(request, pk):
-    exc  = get_object_or_404(ScheduleException, pk=pk, doctor=request.user)
+    exc = get_object_or_404(ScheduleException, pk=pk, doctor=request.user)
     form = ScheduleExceptionForm(request.POST, instance=exc)
     if form.is_valid():
         updated = form.save(commit=False)
@@ -157,61 +196,51 @@ def exception_delete(request, pk):
     return JsonResponse({"ok": True})
 
 
-# ── API: eventos para FullCalendar ─────────────────────────────────────────────
-
 @doctor_required
 def calendar_events(request):
-    """
-    Devuelve todos los eventos del médico en formato FullCalendar.
-    El front hace GET /doctor/calendar/events/ al cargar el calendario.
-    """
     from datetime import date, timedelta
 
-    # Rango: semana actual ± 4 semanas (ajustable con query params)
-    today     = date.today()
+    today = date.today()
     range_start = today - timedelta(weeks=4)
-    range_end   = today + timedelta(weeks=8)
+    range_end = today + timedelta(weeks=8)
 
     events = []
 
-    # 1. Horarios recurrentes → expandir en fechas concretas
     schedules = DoctorSchedule.objects.filter(doctor=request.user, is_active=True)
     current = range_start
     while current <= range_end:
-        # day_number: 0=Domingo … 6=Sábado  |  weekday(): 0=Lunes … 6=Domingo
-        current_day = (current.weekday() + 1) % 7  # convierte a tu convención
+        current_day = (current.weekday() + 1) % 7
         for s in schedules:
             if s.day_number == current_day:
                 events.append({
-                    "id":        f"schedule-{s.pk}-{current}",
-                    "title":     "Disponible",
-                    "start":     f"{current}T{s.start_time}",
-                    "end":       f"{current}T{s.end_time}",
-                    "type":      "available",
+                    "id": f"schedule-{s.pk}-{current}",
+                    "title": "Disponible",
+                    "start": f"{current}T{s.start_time}",
+                    "end": f"{current}T{s.end_time}",
+                    "type": "available",
                     "className": "event-available",
                     "scheduleId": s.pk,
                 })
         current += timedelta(days=1)
 
-    # 2. Excepciones (bloqueos y disponibilidad extra)
     exceptions = ScheduleException.objects.filter(
         doctor=request.user,
         date__range=(range_start, range_end)
     )
     type_map = {
-        "BLOCKED":   ("Bloqueado",         "event-blocked"),
-        "AVAILABLE": ("Disponible extra",  "event-available"),
+        "BLOCKED": ("Bloqueado", "event-blocked"),
+        "AVAILABLE": ("Disponible extra", "event-available"),
     }
     for exc in exceptions:
         title, css = type_map[exc.type]
         events.append({
-            "id":          f"exc-{exc.pk}",
-            "title":       title,
-            "start":       f"{exc.date}T{exc.start_time}",
-            "end":         f"{exc.date}T{exc.end_time}",
-            "type":        exc.type.lower(),
-            "className":   css,
-            "reason":      exc.reason,
+            "id": f"exc-{exc.pk}",
+            "title": title,
+            "start": f"{exc.date}T{exc.start_time}",
+            "end": f"{exc.date}T{exc.end_time}",
+            "type": exc.type.lower(),
+            "className": css,
+            "reason": exc.reason,
             "exceptionId": exc.pk,
         })
 
