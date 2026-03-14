@@ -1,0 +1,23 @@
+<div id="tabla-disponibilidad">
+    <h3>Disponibilidad de {{ doctor.nombre }}</h3>
+    <table border="1" style="border-collapse: collapse; width: 50%; margin-top: 10px;">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Hora</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for horario in horarios %}
+            <tr>
+                <td>{{ horario.fecha }}</td>
+                <td>{{ horario.hora }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="2">No hay horarios disponibles</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

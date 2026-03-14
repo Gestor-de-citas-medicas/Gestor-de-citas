@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Disponibilidad</title>
+</head>
+
+<body>
+
+<h1>Disponibilidad de {{ doctor.nombre }}</h1>
+
+<table border="1">
+
+<tr>
+<th>Fecha</th>
+<th>Hora</th>
+</tr>
+
+{% for horario in horarios %}
+
+<tr>
+<td>{{ horario.fecha }}</td>
+<td>{{ horario.hora }}</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+<br>
+
+<a href="/buscar-doctor/">Volver</a>
+
+</body>
+
+</html>
