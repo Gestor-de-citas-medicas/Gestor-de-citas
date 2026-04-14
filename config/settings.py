@@ -14,8 +14,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    "accounts",   # tu app
-    "appointments",  # NEW: app para gestión de citas médicas
+    # Apps del proyecto
+    "accounts",
+    "appointments",
+    "busqueda",
 ]
 
 MIDDLEWARE = [
@@ -33,10 +35,11 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],          # ok (usaremos templates dentro de la app)
-        "APP_DIRS": True,    # ✅ importante: que esté True
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
+                "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
@@ -70,8 +73,8 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# ✅ Usuario personalizado
 AUTH_USER_MODEL = "accounts.User"
 
-# (opcional pero útil)
 LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"

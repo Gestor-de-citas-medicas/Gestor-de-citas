@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Búsqueda de doctores</title>
+
+    <style>
+    body{
+        font-family: Arial, sans-serif;
+        background:#f4f6f9;
+        margin:0;
+    }
+
+    /* Header */
+    .header{
+        background:#2f6fed;
+        color:white;
+        padding:20px;
+        text-align:center;
+    }
+
+    /* buscador */
+    .buscador{
+        background:white;
+        padding:20px;
+        text-align:center;
+        box-shadow:0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .buscador input{
+        padding:10px;
+        width:250px;
+        border:1px solid #ccc;
+        border-radius:5px;
+    }
+
+    .buscador button{
+        padding:10px 15px;
+        background:#2f6fed;
+        color:white;
+        border:none;
+        border-radius:5px;
+    }
+
+    /* contenedor */
+    .container{
+        width:70%;
+        margin:auto;
+        margin-top:30px;
+    }
+
+    /* tarjeta doctor */
+    .doctor-card{
+        background:white;
+        border-radius:10px;
+        padding:20px;
+        margin-bottom:20px;
+        box-shadow:0 3px 10px rgba(0,0,0,0.1);
+    }
+
+    .doctor-nombre{
+        font-size:20px;
+        font-weight:bold;
+    }
+
+    .doctor-especialidad{
+        color:gray;
+    }
+
+    .doctor-card button{
+        padding:8px 12px;
+        background:#2f6fed;
+        color:white;
+        border:none;
+        border-radius:5px;
+        cursor:pointer;
+    }
+
+    /* tabla de horarios */
+    #horarios-container table{
+        width:100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+
+    #horarios-container th, #horarios-container td{
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: center;
+    }
+
+    #horarios-container th{
+        background-color: #007bff;
+        color: white;
+    }
+
+    #horarios-container h3{
+        margin-top: 20px;
+        color: #2f6fed;
+    }
+    </style>
+
+</head>
+
+<body>
+
+<div class="header">
+    <h1>Sistema de Citas Médicas</h1>
+</div>
+
+<div class="buscador">
+    <form method="GET">
+        <input type="text" name="especialidad" placeholder="Buscar especialidad">
+        <button type="submit">Buscar</button>
+    </form>
+</div>
+
+<div class="container">
+
+    <h2>Doctores disponibles</h2>
+
+    {% for doctor in doctores %}
+    <div class="doctor-card">
+        <div class="doctor-nombre">{{ doctor.nombre }}</div>
+        <div class="doctor-especialidad">{{ doctor.especialidad }}</div>
+        <br>
+        <button class="btn-disponibilidad" data-id="{{ doctor.id }}">
+            Ver disponibilidad
+        </button>
+    </div>
+    {% endfor %}
+
+    <!-- Aquí se cargará la tabla de horarios -->
+    <div id="horarios-container"></div>
+
+</div>
+
+<!-- JavaScript para AJAX -->
+<script>
+document.querySelectorAll('.btn-disponibilidad').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const doctorId = this.dataset.id;
+        fetch(`/busqueda/disponibilidad-ajax/${doctorId}/`)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('horarios-container').innerHTML = html;
+                // Scroll hacia la tabla de horarios
+                document.getElementById('horarios-container').scrollIntoView({behavior: "smooth"});
+            });
+    });
+});
+</script>
+
+</body>
+</html>
