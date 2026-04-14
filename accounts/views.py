@@ -102,7 +102,8 @@ def doctor_register(request):
 
 @login_required
 def patient_dashboard(request):
-    return HttpResponse("Patient dashboard ✅")
+    # Redirect to appointments list instead of placeholder
+    return redirect("appointment_list")
 
 
 @login_required
