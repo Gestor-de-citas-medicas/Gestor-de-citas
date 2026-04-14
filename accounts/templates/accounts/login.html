@@ -1,54 +1,67 @@
-{% extends "accounts/base_auth.html" %}
-{% block title %}Login | MAMP{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Iniciar sesión | MAMP{% endblock %}
 
 {% block content %}
-  <h1>Iniciar sesión</h1>
-  <p class="sub">Accede para gestionar citas, disponibilidad y notificaciones.</p>
+<div class="content-box glass-panel" style="max-width: 440px; margin: 80px auto; padding: 40px; text-align: center; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4);">
+  <div style="width: 64px; height: 64px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 20px; box-shadow: 0 8px 16px rgba(45, 212, 191, 0.2);">🏥</div>
+  
+  <h1 style="font-family: 'DM Serif Display', serif; font-size: 2.2rem; font-weight: normal; margin-bottom: 8px;">Bienvenido</h1>
+  <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 32px; line-height: 1.5;">Ingresa tus credenciales para acceder a la plataforma médica MAMP.</p>
 
   {% if form.errors %}
-    <div class="alert" role="alert">
-      Usuario o contraseña incorrectos. Intenta de nuevo.
+    <div style="background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); border-radius: 12px; padding: 14px; font-size: 0.85rem; color: var(--danger); margin-bottom: 24px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
+      <i class="fa-solid fa-circle-exclamation"></i> Usuario o contraseña incorrectos.
     </div>
   {% endif %}
 
-  <form method="post" novalidate>
+  <form method="post" novalidate style="text-align: left;">
     {% csrf_token %}
 
-    <div class="form-row">
-      <label for="id_username">Usuario</label>
-      {{ form.username }}
+    <div style="margin-bottom: 20px;">
+      <label for="id_username" class="form-label" style="font-size: 0.75rem; font-weight: 600;">Usuario</label>
+      <div style="position: relative;">
+        <i class="fa-regular fa-user" style="position: absolute; left: 14px; top: 13px; color: var(--text-muted);"></i>
+        {{ form.username }}
+      </div>
     </div>
 
-    <div class="form-row">
-      <label for="id_password">Contraseña</label>
-      {{ form.password }}
-      <div class="help">Tu sesión se cerrará automáticamente tras inactividad.</div>
+    <div style="margin-bottom: 32px;">
+      <label for="id_password" class="form-label" style="font-size: 0.75rem; font-weight: 600;">Contraseña</label>
+      <div style="position: relative;">
+        <i class="fa-solid fa-lock" style="position: absolute; left: 14px; top: 13px; color: var(--text-muted);"></i>
+        {{ form.password }}
+      </div>
     </div>
 
-    <button class="btn" type="submit">Ingresar</button>
-
-    <a
-      href="{% url 'register_choice' %}"
-      style="
-        display:block;
-        width:100%;
-        margin-top:12px;
-        padding:14px 16px;
-        border-radius:14px;
-        border:1px solid #d7dee7;
-        background:#ffffff;
-        color:#0f172a;
-        text-align:center;
-        text-decoration:none;
-        font-weight:600;
-        box-sizing:border-box;
-      "
-    >
-      Crear cuenta
-    </a>
-
-    <div class="footer">
-      ¿Problemas para entrar? <a class="small-link" href="#">Contacta soporte</a>
-    </div>
+    <button type="submit" class="btn-primary" style="width: 100%; border-radius: 14px; padding: 14px; font-size: 1.05rem; box-shadow: 0 6px 15px rgba(45, 212, 191, 0.2);">Ingresar a MAMP</button>
   </form>
+
+  <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.05);">
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">¿No tienes cuenta registrada?</p>
+    <a href="{% url 'register_choice' %}" class="btn-secondary" style="width: 100%; border-radius: 14px; padding: 12px; background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.1);">Crear cuenta nueva</a>
+  </div>
+</div>
+
+<style>
+  /* Specifically target the django inputs since we injected icons before them */
+  form input[type="text"], form input[type="password"] {
+    padding-left: 42px !important;
+    background: rgba(0,0,0,0.2) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+  }
+  form input[type="text"]:focus, form input[type="password"]:focus {
+    border-color: var(--accent) !important;
+    background: rgba(0,0,0,0.3) !important;
+    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.1);
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll("input[type='text'], input[type='password']").forEach(input => {
+      input.classList.add("input-control");
+    });
+  });
+</script>
 {% endblock %}

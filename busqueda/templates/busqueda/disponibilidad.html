@@ -1,36 +1,41 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
 
-<head>
-<title>Disponibilidad</title>
-</head>
+{% block title %}Disponibilidad | MedSync{% endblock %}
 
-<body>
+{% block content %}
+<div class="content-box" style="max-width: 600px; margin: 40px auto;">
+  <div style="margin-bottom: 20px; text-align: center;">
+    <h1 style="font-family: 'DM Serif Display', serif; font-size: 1.6rem; font-weight: normal; margin-bottom: 8px;">Disponibilidad</h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem;">Dr(a). {{ doctor.nombre }}</p>
+  </div>
 
-<h1>Disponibilidad de {{ doctor.nombre }}</h1>
+  <div class="table-responsive">
+    <table class="med-table" style="width: 100%;">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Hora</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for horario in horarios %}
+        <tr>
+          <td><i class="fa-regular fa-calendar" style="color: var(--text-muted); margin-right: 8px;"></i>{{ horario.fecha }}</td>
+          <td style="color: var(--accent);"><i class="fa-regular fa-clock" style="margin-right: 8px;"></i>{{ horario.hora }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="2" style="text-align: center; padding: 32px; color: var(--text-muted);">
+            No hay horarios disponibles próximamente.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
-<table border="1">
-
-<tr>
-<th>Fecha</th>
-<th>Hora</th>
-</tr>
-
-{% for horario in horarios %}
-
-<tr>
-<td>{{ horario.fecha }}</td>
-<td>{{ horario.hora }}</td>
-</tr>
-
-{% endfor %}
-
-</table>
-
-<br>
-
-<a href="/buscar-doctor/">Volver</a>
-
-</body>
-
-</html>
+  <div style="margin-top: 32px; text-align: center;">
+    <a href="{% url 'buscar_doctor' %}" class="btn-secondary">Volver al buscador</a>
+  </div>
+</div>
+{% endblock %}

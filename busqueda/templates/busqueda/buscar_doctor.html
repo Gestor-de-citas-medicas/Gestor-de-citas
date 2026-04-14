@@ -1,140 +1,43 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Búsqueda de doctores</title>
+{% extends "base.html" %}
 
-    <style>
-    body{
-        font-family: Arial, sans-serif;
-        background:#f4f6f9;
-        margin:0;
-    }
+{% block title %}Buscar Doctores | MedSync{% endblock %}
 
-    /* Header */
-    .header{
-        background:#2f6fed;
-        color:white;
-        padding:20px;
-        text-align:center;
-    }
-
-    /* buscador */
-    .buscador{
-        background:white;
-        padding:20px;
-        text-align:center;
-        box-shadow:0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    .buscador input{
-        padding:10px;
-        width:250px;
-        border:1px solid #ccc;
-        border-radius:5px;
-    }
-
-    .buscador button{
-        padding:10px 15px;
-        background:#2f6fed;
-        color:white;
-        border:none;
-        border-radius:5px;
-    }
-
-    /* contenedor */
-    .container{
-        width:70%;
-        margin:auto;
-        margin-top:30px;
-    }
-
-    /* tarjeta doctor */
-    .doctor-card{
-        background:white;
-        border-radius:10px;
-        padding:20px;
-        margin-bottom:20px;
-        box-shadow:0 3px 10px rgba(0,0,0,0.1);
-    }
-
-    .doctor-nombre{
-        font-size:20px;
-        font-weight:bold;
-    }
-
-    .doctor-especialidad{
-        color:gray;
-    }
-
-    .doctor-card button{
-        padding:8px 12px;
-        background:#2f6fed;
-        color:white;
-        border:none;
-        border-radius:5px;
-        cursor:pointer;
-    }
-
-    /* tabla de horarios */
-    #horarios-container table{
-        width:100%;
-        border-collapse: collapse;
-        margin-top: 15px;
-    }
-
-    #horarios-container th, #horarios-container td{
-        border: 1px solid #ccc;
-        padding: 8px;
-        text-align: center;
-    }
-
-    #horarios-container th{
-        background-color: #007bff;
-        color: white;
-    }
-
-    #horarios-container h3{
-        margin-top: 20px;
-        color: #2f6fed;
-    }
-    </style>
-
-</head>
-
-<body>
-
-<div class="header">
-    <h1>Sistema de Citas Médicas</h1>
+{% block content %}
+<div class="view-actions-header" style="margin-bottom: 24px; text-align: center;">
+  <h1 style="font-family: 'DM Serif Display', serif; font-size: 2rem; font-weight: normal; margin-bottom: 12px;">Doctores Disponibles</h1>
+  <p style="color: var(--text-muted); font-size: 0.95rem;">Encuentra al especialista ideal y consulta sus próximos espacios libres.</p>
 </div>
 
-<div class="buscador">
-    <form method="GET">
-        <input type="text" name="especialidad" placeholder="Buscar especialidad">
-        <button type="submit">Buscar</button>
-    </form>
+<div class="content-box" style="margin-bottom: 24px; padding: 20px;">
+  <form method="GET" style="display: flex; gap: 12px; align-items: center; max-width: 600px; margin: 0 auto;">
+    <input type="text" name="especialidad" class="input-control" placeholder="🔍 Buscar por especialidad o nombre" style="flex: 1;">
+    <button type="submit" class="btn-primary" style="padding: 10px 24px; border-radius: 8px;">Buscar</button>
+  </form>
 </div>
 
-<div class="container">
-
-    <h2>Doctores disponibles</h2>
-
-    {% for doctor in doctores %}
-    <div class="doctor-card">
-        <div class="doctor-nombre">{{ doctor.nombre }}</div>
-        <div class="doctor-especialidad">{{ doctor.especialidad }}</div>
-        <br>
-        <button class="btn-disponibilidad" data-id="{{ doctor.id }}">
-            Ver disponibilidad
-        </button>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+  {% for doctor in doctores %}
+    <div class="content-box" style="padding: 24px; display: flex; flex-direction: column;">
+      <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--accent2), var(--accent)); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 18px; color: #fff;">
+          {{ doctor.nombre|make_list|first|upper }}
+        </div>
+        <div>
+          <div style="font-weight: 600; font-size: 1.05rem; color: var(--text);">Dr(a). {{ doctor.nombre }}</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">{{ doctor.especialidad }}</div>
+        </div>
+      </div>
+      
+      <button class="btn-secondary btn-disponibilidad" data-id="{{ doctor.id }}" style="width: 100%; border-radius: 10px; margin-top: auto; font-size: 0.9rem;">
+        Revisar Disponibilidad
+      </button>
     </div>
-    {% endfor %}
-
-    <!-- Aquí se cargará la tabla de horarios -->
-    <div id="horarios-container"></div>
-
+  {% endfor %}
 </div>
 
-<!-- JavaScript para AJAX -->
+<!-- Contenedor para AJAX -->
+<div id="horarios-container" style="margin-top: 32px;"></div>
+
 <script>
 document.querySelectorAll('.btn-disponibilidad').forEach(btn => {
     btn.addEventListener('click', function() {
@@ -143,12 +46,9 @@ document.querySelectorAll('.btn-disponibilidad').forEach(btn => {
             .then(response => response.text())
             .then(html => {
                 document.getElementById('horarios-container').innerHTML = html;
-                // Scroll hacia la tabla de horarios
-                document.getElementById('horarios-container').scrollIntoView({behavior: "smooth"});
+                document.getElementById('horarios-container').scrollIntoView({behavior: "smooth", block: "start"});
             });
     });
 });
 </script>
-
-</body>
-</html>
+{% endblock %}

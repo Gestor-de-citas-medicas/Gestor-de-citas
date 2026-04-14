@@ -1,23 +1,38 @@
-<div id="tabla-disponibilidad">
-    <h3>Disponibilidad de {{ doctor.nombre }}</h3>
-    <table border="1" style="border-collapse: collapse; width: 50%; margin-top: 10px;">
-        <thead>
-            <tr>
-                <th>Fecha</th>
-                <th>Hora</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for horario in horarios %}
-            <tr>
-                <td>{{ horario.fecha }}</td>
-                <td>{{ horario.hora }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="2">No hay horarios disponibles</td>
-            </tr>
-            {% endfor %}
-        </tbody>
+<div class="content-box" style="animation: slideIn 0.3s ease-out;">
+  <div style="margin-bottom: 20px;">
+    <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.4rem; font-weight: normal; margin-bottom: 8px;">Horarios Disponibles</h3>
+    <p style="color: var(--text-muted); font-size: 0.85rem;">Dr(a). {{ doctor.nombre }}</p>
+  </div>
+
+  <div class="table-responsive">
+    <table class="med-table" style="width: 100%;">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Bloque de Hora</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for horario in horarios %}
+        <tr>
+          <td><i class="fa-regular fa-calendar" style="color: var(--text-muted); margin-right: 8px;"></i>{{ horario.fecha }}</td>
+          <td style="color: var(--accent);"><i class="fa-regular fa-clock" style="margin-right: 8px;"></i>{{ horario.hora }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="2" style="text-align: center; padding: 32px; color: var(--text-muted);">
+            No hay horarios disponibles próximamente.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
+  </div>
 </div>
+
+<style>
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>

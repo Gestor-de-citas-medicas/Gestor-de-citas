@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}MAMP{% endblock %}</title>
+
+  {% block extra_head %}{% endblock %}
+
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --bg: #0b0f15;
+      --surface: rgba(22, 27, 34, 0.7); /* translucency for glass effect */
+      --surface2: rgba(28, 35, 48, 0.75);
+      --border: #30363d;
+      --accent: #2dd4bf;
+      --accent2: #818cf8;
+      --danger: #f87171;
+      --text: #e6edf3;
+      --text-muted: #7d8590;
+      --available: rgba(45,212,191,0.18);
+      --available-border: #2dd4bf;
+      --booked: rgba(129,140,248,0.18);
+      --booked-border: #818cf8;
+      --blocked: rgba(248,113,113,0.13);
+      --blocked-border: #f87171;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 32px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .logo-text {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.25rem;
+      letter-spacing: -0.3px;
+    }
+    .logo-text span { color: var(--accent); }
+
+    .user-info {
+      display: flex; align-items: center; gap: 14px;
+    }
+    .user-avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 15px; color: #fff;
+    }
+    .user-name { font-weight: 500; font-size: 0.9rem; margin-bottom: 2px;}
+    .user-role { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;}
+
+    /* ── Autenticación de Header ── */
+    .btn-logout {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all .2s;
+      margin-left: 10px;
+      text-decoration: none;
+    }
+    .btn-logout:hover {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    /* ── Layout ── */
+    .app {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Sidebar genérico */
+    aside {
+      width: 260px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      flex-shrink: 0;
+      overflow-y: auto;
+    }
+
+    .nav-menu {
+      display: flex;
+      flex-direction: column;
+      padding: 20px 14px;
+      gap: 5px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all .2s;
+    }
+    .nav-item i {
+      width: 18px;
+      text-align: center;
+      font-size: 1.1rem;
+    }
+    .nav-item:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+    .nav-item.active {
+      background: var(--available);
+      color: var(--accent);
+    }
+
+    /* Main */
+    main {
+      flex: 1; 
+      padding: 30px 40px; 
+      overflow: auto;
+    }
+
+    /* Content Cards comunes */
+    .content-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+    }
+
+    /* Standard Buttons */
+    .btn-primary {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, var(--accent), #0ea5e9);
+      border: none; border-radius: 8px;
+      color: #0d1117; font-weight: 600; font-size: 0.9rem;
+      cursor: pointer; transition: opacity .2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-primary:hover { opacity: .85; }
+
+    .btn-secondary {
+      padding: 10px 20px;
+      background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-weight: 500; font-size: 0.9rem;
+      cursor: pointer; transition: border-color .2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-secondary:hover { border-color: var(--text-muted); color: var(--text); }
+
+    /* Tables */
+    .table-responsive {
+      overflow-x: auto;
+    }
+    table.med-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    .med-table th {
+      text-align: left;
+      padding: 14px 16px;
+      background: var(--surface2);
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--border);
+    }
+    .med-table td {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.9rem;
+      vertical-align: middle;
+    }
+    .med-table tr:last-child td { border-bottom: none; }
+    .med-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* Form Inputs genéricos */
+    .input-control {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      width: 100%;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .input-control:focus {
+      border-color: var(--accent);
+    }
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    /* Dynamic Background CSS */
+    .bg-animation {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: -1;
+      overflow: hidden;
+      background: var(--bg);
+    }
+    .bg-circle {
+      position: absolute;
+      border-radius: 50%;
+      border: 1.5px solid rgba(45, 212, 191, 0.15);
+      top: var(--y);
+      left: var(--x);
+      width: var(--size);
+      height: var(--size);
+      animation: float-circle var(--duration) linear infinite;
+      box-shadow: 0 0 40px rgba(45, 212, 191, 0.05) inset;
+    }
+    .bg-circle.primary {
+      border-color: rgba(45, 212, 191, 0.2);
+      box-shadow: 0 0 60px rgba(45, 212, 191, 0.08) inset;
+    }
+    .bg-circle.secondary {
+      border-color: rgba(129, 140, 248, 0.15);
+      box-shadow: 0 0 50px rgba(129, 140, 248, 0.05) inset;
+    }
+    
+    @keyframes float-circle {
+      0% {
+        transform: translate(0, 0) rotate(0deg);
+      }
+      33% {
+        transform: translate(var(--mx), var(--my)) rotate(120deg);
+      }
+      66% {
+        transform: translate(calc(var(--mx) * -0.5), calc(var(--my) * 1.5)) rotate(240deg);
+      }
+      100% {
+        transform: translate(0, 0) rotate(360deg);
+      }
+    }
+
+    /* Glassmorphism helpers */
+    .glass-panel {
+      background: rgba(22, 27, 34, 0.6) !important;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    }
+    aside {
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    header {
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      background: rgba(22, 27, 34, 0.85); /* Slightly less translucent to stay readable */
+    }
+
+    {% block extra_css %}{% endblock %}
+  </style>
+</head>
+<body>
+
+<!-- Fondo Dinámico -->
+<div class="bg-animation">
+  <div class="bg-circle primary" style="--size: 600px; --x: -10vw; --y: -20vh; --mx: 15vw; --my: 15vh; --duration: 35s;"></div>
+  <div class="bg-circle secondary" style="--size: 400px; --x: 70vw; --y: 10vh; --mx: -10vw; --my: 20vh; --duration: 25s;"></div>
+  <div class="bg-circle" style="--size: 800px; --x: 40vw; --y: 60vh; --mx: 20vw; --my: -10vh; --duration: 45s;"></div>
+  <div class="bg-circle secondary" style="--size: 300px; --x: 10vw; --y: 70vh; --mx: 10vw; --my: -20vh; --duration: 28s;"></div>
+  <div class="bg-circle primary" style="--size: 200px; --x: 80vw; --y: -5vh; --mx: -5vw; --my: 10vh; --duration: 20s;"></div>
+</div>
+
+<!-- Header Global -->
+<header>
+  <a href="/" class="logo">
+    <div class="logo-icon">🏥</div>
+    <div style="display: flex; flex-direction: column;">
+      <div class="logo-text">MA<span>MP</span></div>
+      <div style="font-size: 0.65rem; color: var(--text-muted); font-family: 'DM Sans', sans-serif; letter-spacing: 0.5px; text-transform: uppercase;">Medical Appointment Platform</div>
+    </div>
+  </a>
+
+  {% if user.is_authenticated %}
+  <div class="user-info">
+    <div style="text-align: right;">
+      <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
+      <div class="user-role">{{ user.get_role_display }}</div>
+    </div>
+    <div class="user-avatar">{{ user.username|make_list|first|upper }}</div>
+    <form method="post" action="{% url 'logout' %}" style="display:inline;">
+      {% csrf_token %}
+      <button type="submit" class="btn-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+    </form>
+  </div>
+  {% else %}
+  <div>
+    <a href="{% url 'login' %}" class="btn-secondary" style="margin-right: 10px;">Ingresar</a>
+    <a href="{% url 'register_choice' %}" class="btn-primary">Registrarse</a>
+  </div>
+  {% endif %}
+</header>
+
+<!-- Contenido principal -->
+{% if user.is_authenticated %}
+<div class="app">
+  <aside>
+    <div class="nav-menu">
+      {% if user.role == 'DOCTOR' %}
+        <a href="{% url 'doctor_dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'doctor_dashboard' %}active{% endif %}">
+          <i class="fa-regular fa-calendar-days"></i> Mi Calendario
+        </a>
+        <a href="{% url 'appointment_list' %}" class="nav-item {% if request.resolver_match.url_name == 'appointment_list' %}active{% endif %}">
+          <i class="fa-solid fa-user-doctor"></i> Mis Citas
+        </a>
+      {% elif user.role == 'PATIENT' %}
+        <a href="{% url 'buscar_doctor' %}" class="nav-item {% if request.resolver_match.url_name == 'buscar_doctor' or request.resolver_match.url_name == 'disponibilidad' %}active{% endif %}">
+          <i class="fa-solid fa-magnifying-glass"></i> Buscar Doctor
+        </a>
+        <a href="{% url 'appointment_list' %}" class="nav-item {% if request.resolver_match.url_name == 'appointment_list' %}active{% endif %}">
+          <i class="fa-regular fa-address-book"></i> Mis Citas
+        </a>
+      {% endif %}
+    </div>
+
+    {% block sidebar_extra %}{% endblock %}
+  </aside>
+
+  <main>
+{% else %}
+  <!-- Layout sin sidebar (ej: login, forms) -->
+  <main style="padding: 40px; max-width: 1200px; margin: 0 auto; width: 100%;">
+{% endif %}
+
+    {% block content %}{% endblock %}
+
+{% if user.is_authenticated %}
+  </main>
+</div>
+{% else %}
+  </main>
+{% endif %}
+
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>
