@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from .models import Appointment
+from .models import Appointment, AppointmentReview
 
 User = get_user_model()
 
@@ -31,3 +31,29 @@ class AppointmentForm(forms.ModelForm):
         cleaned = super().clean()
         # La hora de fin se calculará automáticamente (1 hora después del inicio)
         return cleaned
+
+
+class AppointmentReviewForm(forms.ModelForm):
+    """Form for patients to leave a post-appointment review."""
+
+    class Meta:
+        model = AppointmentReview
+        fields = ["rating", "comment"]
+        widgets = {
+            "rating": forms.HiddenInput(),
+            "comment": forms.Textarea(attrs={
+                "rows": 4,
+                "class": "field-input",
+                "placeholder": "Share your experience with this doctor (optional)...",
+            }),
+        }
+        labels = {
+            "rating": "Rating",
+            "comment": "Your Review",
+        }
+
+    def clean_rating(self):
+        rating = self.cleaned_data.get("rating")
+        if rating is None or rating < 1 or rating > 5:
+            raise forms.ValidationError("Please select a rating between 1 and 5 stars.")
+        return rating

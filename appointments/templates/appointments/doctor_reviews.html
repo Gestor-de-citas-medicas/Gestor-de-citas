@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Dr. {{ doctor.get_full_name|default:doctor.username }} Reviews | Medical Appointment Manager{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 20px auto;">
+
+  <!-- Doctor Header Card -->
+  <div class="content-box" style="text-align: center; margin-bottom: 24px; padding: 32px;">
+    <div style="font-size: 3rem; margin-bottom: 8px;">👨‍⚕️</div>
+    <h1 style="font-family: 'DM Serif Display', serif; font-size: 1.8rem; font-weight: normal; margin-bottom: 4px;">
+      Dr. {{ doctor.get_full_name|default:doctor.username }}
+    </h1>
+
+    {% if total_reviews > 0 %}
+      <!-- Overall Rating -->
+      <div style="margin: 16px 0;">
+        <div style="font-size: 2.8rem; font-weight: 700; color: #f59e0b; line-height: 1;">{{ avg_rating }}</div>
+        <div style="font-size: 1.4rem; margin: 6px 0; letter-spacing: 2px;">
+          {% for i in "12345"|make_list %}
+            {% if forloop.counter <= full_stars %}
+              <span style="color: #f59e0b;">★</span>
+            {% elif has_half and forloop.counter == full_stars|add:1 %}
+              <span style="color: #f59e0b;">★</span>
+            {% else %}
+              <span style="color: var(--surface2);">★</span>
+            {% endif %}
+          {% endfor %}
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">{{ total_reviews }} review{{ total_reviews|pluralize }}</p>
+      </div>
+
+      <!-- Rating Distribution -->
+      <div style="max-width: 320px; margin: 20px auto 0;">
+        {% for star, data in distribution.items %}
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.8rem;">
+          <span style="color: var(--text-muted); min-width: 12px; text-align: right;">{{ star }}</span>
+          <span style="color: #f59e0b; font-size: 0.7rem;">★</span>
+          <div style="flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden;">
+            <div style="height: 100%; width: {{ data.pct }}%; background: linear-gradient(90deg, #f59e0b, #fbbf24); border-radius: 4px; transition: width 0.6s ease;"></div>
+          </div>
+          <span style="color: var(--text-muted); min-width: 28px;">{{ data.count }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 16px;">No reviews yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Reviews List -->
+  {% if reviews %}
+  <div class="content-box">
+    <h2 style="font-family: 'DM Serif Display', serif; font-size: 1.3rem; font-weight: normal; margin-bottom: 20px;">Patient Reviews</h2>
+
+    {% for review in reviews %}
+    <div style="border-bottom: 1px solid var(--surface2); padding: 16px 0; {% if forloop.last %}border-bottom: none;{% endif %}">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <div>
+          <span style="color: #f59e0b; font-size: 1rem; letter-spacing: 1px;">
+            {% for i in "12345"|make_list %}
+              {% if forloop.counter <= review.rating %}★{% else %}<span style="color: var(--surface2);">★</span>{% endif %}
+            {% endfor %}
+          </span>
+          <span style="color: var(--text-muted); font-size: 0.75rem; margin-left: 8px;">
+            {{ review.created_at|date:"M d, Y" }}
+          </span>
+        </div>
+        <span style="color: var(--text-muted); font-size: 0.75rem;">
+          {{ review.appointment.patient.get_full_name|default:review.appointment.patient.username }}
+        </span>
+      </div>
+      {% if review.comment %}
+        <p style="color: var(--text); font-size: 0.9rem; margin: 0; line-height: 1.5;">
+          "{{ review.comment }}"
+        </p>
+      {% else %}
+        <p style="color: var(--text-muted); font-size: 0.85rem; font-style: italic; margin: 0;">No comment provided.</p>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div style="text-align: center; margin-top: 20px;">
+    <a href="{% url 'appointment_list' %}" class="btn-secondary" style="display: inline-block;">← Back to Appointments</a>
+  </div>
+</div>
+{% endblock %}

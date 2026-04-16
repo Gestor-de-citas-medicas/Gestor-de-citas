@@ -39,6 +39,7 @@ def home(request):
 
 class RoleBasedLoginView(LoginView):
     template_name = "accounts/login.html"
+    redirect_authenticated_user = True
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)

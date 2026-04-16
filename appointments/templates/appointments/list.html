@@ -69,6 +69,15 @@
               {% if request.user == appt.patient and appt.status != "CANCELLED" and appt.status != "COMPLETED" %}
                 <a href="{% url 'appointment_cancel' appt.pk %}" style="padding: 6px 12px; border-radius: 6px; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.4); color: var(--danger); text-decoration: none; font-size: 0.75rem; transition: background .15s;">Cancel</a>
               {% endif %}
+
+              <!-- Patient: Leave a Review for completed appointments -->
+              {% if request.user == appt.patient and appt.status == "COMPLETED" %}
+                {% if not appt.review %}
+                  <a href="{% url 'review_create' appt.pk %}" style="padding: 6px 12px; border-radius: 6px; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.4); color: #f59e0b; text-decoration: none; font-size: 0.75rem; transition: background .15s; font-weight: 600;">⭐ Leave a Review</a>
+                {% else %}
+                  <span style="padding: 6px 12px; border-radius: 6px; background: rgba(34,197,94,0.1); color: #22c55e; font-size: 0.75rem;">✓ Reviewed</span>
+                {% endif %}
+              {% endif %}
               
               <!-- Doctor actions -->
               {% if request.user == appt.doctor and appt.status == "PENDING" %}
@@ -78,6 +87,11 @@
               {% if request.user == appt.doctor and appt.status == "CONFIRMED" %}
                 <a href="{% url 'appointment_complete' appt.pk %}" style="padding: 6px 12px; border-radius: 6px; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.4); color: #22c55e; text-decoration: none; font-size: 0.75rem; transition: background .15s;">Complete</a>
                 <a href="{% url 'appointment_cancel' appt.pk %}" style="padding: 6px 12px; border-radius: 6px; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.4); color: var(--danger); text-decoration: none; font-size: 0.75rem; transition: background .15s;">Cancel</a>
+              {% endif %}
+
+              <!-- Doctor: View my reviews -->
+              {% if request.user == appt.doctor and appt.status == "COMPLETED" %}
+                <a href="{% url 'doctor_reviews' appt.doctor.pk %}" style="padding: 6px 12px; border-radius: 6px; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.4); color: #f59e0b; text-decoration: none; font-size: 0.75rem; transition: background .15s;">⭐ View Reviews</a>
               {% endif %}
               
               <!-- Admin actions -->

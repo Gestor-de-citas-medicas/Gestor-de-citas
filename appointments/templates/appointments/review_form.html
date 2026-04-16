@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Leave a Review | Medical Appointment Manager{% endblock %}
+
+{% block content %}
+<div class="content-box" style="max-width: 600px; margin: 20px auto;">
+  <div style="margin-bottom: 24px; text-align: center;">
+    <h1 style="font-family: 'DM Serif Display', serif; font-size: 1.8rem; font-weight: normal; margin-bottom: 8px;">⭐ Rate Your Appointment</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">Share your experience with Dr. {{ appointment.doctor.get_full_name|default:appointment.doctor.username }}</p>
+  </div>
+
+  <!-- Appointment Summary Card -->
+  <div style="background: var(--surface2); border-radius: 12px; padding: 16px; margin-bottom: 24px; border-left: 3px solid var(--accent);">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.85rem;">
+      <div><span style="color: var(--text-muted);">Date:</span> {{ appointment.date }}</div>
+      <div><span style="color: var(--text-muted);">Time:</span> {{ appointment.start_time }} – {{ appointment.end_time }}</div>
+      <div style="grid-column: 1/-1;"><span style="color: var(--text-muted);">Reason:</span> {{ appointment.reason|default:"General consultation" }}</div>
+    </div>
+  </div>
+
+  <form method="post" novalidate id="reviewForm">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div style="background: rgba(248,113,113,0.1); border-left: 3px solid var(--danger); padding: 12px; font-size: 0.85rem; color: var(--danger); margin-bottom: 20px;">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <!-- Star Rating Selector -->
+    <div style="margin-bottom: 24px; text-align: center;">
+      <label class="form-label" style="display: block; margin-bottom: 12px;">How would you rate your experience?</label>
+      {{ form.rating }}
+      <div id="starSelector" style="display: flex; justify-content: center; gap: 8px; cursor: pointer;">
+        {% for i in "12345" %}
+        <span class="star" data-value="{{ i }}" style="font-size: 2.5rem; color: var(--surface2); transition: color 0.2s, transform 0.2s; user-select: none;" onmouseenter="hoverStars({{ i }})" onmouseleave="resetStars()" onclick="selectRating({{ i }})">★</span>
+        {% endfor %}
+      </div>
+      <p id="ratingLabel" style="color: var(--text-muted); font-size: 0.8rem; margin-top: 8px;">Click to select a rating</p>
+      {% if form.rating.errors %}<div style="color: var(--danger); font-size: 0.8rem; margin-top: 8px;">{{ form.rating.errors.0 }}</div>{% endif %}
+    </div>
+
+    <!-- Comment -->
+    <div style="margin-bottom: 24px;">
+      <label class="form-label" for="{{ form.comment.id_for_label }}">{{ form.comment.label }}</label>
+      {{ form.comment }}
+      {% if form.comment.errors %}<div style="color: var(--danger); font-size: 0.8rem; margin-top: 4px;">{{ form.comment.errors.0 }}</div>{% endif %}
+    </div>
+
+    <div style="display: flex; gap: 14px;">
+      <a href="{% url 'appointment_list' %}" class="btn-secondary" style="flex: 1; text-align: center;">Cancel</a>
+      <button type="submit" class="btn-primary" style="flex: 2;" id="submitBtn" disabled>Submit Review</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  let selectedRating = 0;
+  const stars = document.querySelectorAll('.star');
+  const ratingInput = document.getElementById('id_rating');
+  const ratingLabel = document.getElementById('ratingLabel');
+  const submitBtn = document.getElementById('submitBtn');
+  const labels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+
+  // Apply styles to textarea
+  document.querySelectorAll("textarea").forEach(el => el.classList.add("input-control"));
+
+  function hoverStars(n) {
+    stars.forEach((s, i) => {
+      s.style.color = (i < n) ? '#f59e0b' : 'var(--surface2)';
+      s.style.transform = (i < n) ? 'scale(1.15)' : 'scale(1)';
+    });
+    ratingLabel.textContent = labels[n];
+  }
+
+  function resetStars() {
+    stars.forEach((s, i) => {
+      s.style.color = (i < selectedRating) ? '#f59e0b' : 'var(--surface2)';
+      s.style.transform = (i < selectedRating) ? 'scale(1.1)' : 'scale(1)';
+    });
+    ratingLabel.textContent = selectedRating > 0 ? labels[selectedRating] : 'Click to select a rating';
+  }
+
+  function selectRating(n) {
+    selectedRating = n;
+    ratingInput.value = n;
+    submitBtn.disabled = false;
+    submitBtn.style.opacity = '1';
+    resetStars();
+    // Micro-animation bounce
+    stars[n-1].style.transform = 'scale(1.3)';
+    setTimeout(() => { stars[n-1].style.transform = 'scale(1.1)'; }, 150);
+  }
+</script>
+{% endblock %}

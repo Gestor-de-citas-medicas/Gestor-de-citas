@@ -2,10 +2,11 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import JsonResponse
+from django.db.models import Avg, Count
 from datetime import timedelta, time, datetime
-from .models import Appointment
-from .forms import AppointmentForm
-from .emails import send_appointment_confirmation, send_appointment_cancellation
+from .models import Appointment, AppointmentReview
+from .forms import AppointmentForm, AppointmentReviewForm
+from .emails import send_appointment_confirmation, send_appointment_cancellation, send_review_request
 from accounts.models import ScheduleException, User
 
 
@@ -13,11 +14,11 @@ from accounts.models import ScheduleException, User
 def appointment_list(request):
     user = request.user
     if user.role == "PATIENT":
-        appointments = Appointment.objects.filter(patient=user).select_related("doctor")
+        appointments = Appointment.objects.filter(patient=user).select_related("doctor", "review")
     elif user.role == "DOCTOR":
-        appointments = Appointment.objects.filter(doctor=user).select_related("patient")
+        appointments = Appointment.objects.filter(doctor=user).select_related("patient", "review")
     else:  # ADMIN
-        appointments = Appointment.objects.all().select_related("patient", "doctor")
+        appointments = Appointment.objects.all().select_related("patient", "doctor", "review")
 
     return render(request, "appointments/list.html", {"appointments": appointments})
 
@@ -118,7 +119,13 @@ def appointment_complete(request, pk):
     
     appointment.status = Appointment.Status.COMPLETED
     appointment.save()
-    messages.success(request, "Appointment marked as completed.")
+    
+    # Send review request email to patient
+    try:
+        send_review_request(appointment)
+        messages.success(request, "Appointment completed. A review request has been sent to the patient.")
+    except Exception as e:
+        messages.success(request, "Appointment marked as completed.")
     
     return redirect("appointment_list")
 
@@ -178,3 +185,78 @@ def available_slots_api(request):
             })
     
     return JsonResponse({"slots": slots})
+
+
+@login_required
+def review_create(request, pk):
+    """Allow a patient to leave a review for a completed appointment."""
+    appointment = get_object_or_404(Appointment, pk=pk)
+
+    # Only the patient who owns the appointment can review
+    if request.user != appointment.patient:
+        messages.error(request, "You don't have permission to review this appointment.")
+        return redirect("appointment_list")
+
+    if appointment.status != Appointment.Status.COMPLETED:
+        messages.error(request, "Only completed appointments can be reviewed.")
+        return redirect("appointment_list")
+
+    # Check if already reviewed
+    if hasattr(appointment, "review"):
+        messages.info(request, "You have already reviewed this appointment.")
+        return redirect("appointment_list")
+
+    if request.method == "POST":
+        form = AppointmentReviewForm(request.POST)
+        form.instance.appointment = appointment
+        if form.is_valid():
+            review = form.save()
+
+            messages.success(request, "Thank you for your review! ⭐")
+            return redirect("appointment_list")
+    else:
+        form = AppointmentReviewForm()
+
+    return render(request, "appointments/review_form.html", {
+        "form": form,
+        "appointment": appointment,
+    })
+
+
+def doctor_reviews(request, pk):
+    """Public view showing a doctor's reviews and average rating."""
+    doctor = get_object_or_404(User, pk=pk, role="DOCTOR")
+
+    reviews = AppointmentReview.objects.filter(
+        appointment__doctor=doctor
+    ).select_related("appointment", "appointment__patient")
+
+    stats = reviews.aggregate(
+        avg_rating=Avg("rating"),
+        total_reviews=Count("id"),
+    )
+    avg_rating = stats["avg_rating"] or 0
+    total_reviews = stats["total_reviews"]
+
+    # Build star display info
+    full_stars = int(avg_rating)
+    has_half = (avg_rating - full_stars) >= 0.5
+    empty_stars = 5 - full_stars - (1 if has_half else 0)
+
+    # Rating distribution
+    distribution = {}
+    for i in range(5, 0, -1):
+        count = reviews.filter(rating=i).count()
+        pct = (count / total_reviews * 100) if total_reviews > 0 else 0
+        distribution[i] = {"count": count, "pct": round(pct)}
+
+    return render(request, "appointments/doctor_reviews.html", {
+        "doctor": doctor,
+        "reviews": reviews,
+        "avg_rating": round(avg_rating, 1),
+        "total_reviews": total_reviews,
+        "full_stars": full_stars,
+        "has_half": has_half,
+        "empty_stars": empty_stars,
+        "distribution": distribution,
+    })

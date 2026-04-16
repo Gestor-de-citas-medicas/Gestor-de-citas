@@ -169,3 +169,55 @@ def send_appointment_cancellation(appointment):
         print(f"{'='*60}\n")
         logger.error(f"Error sending cancellation email: {str(e)}", exc_info=True)
         raise
+
+
+def send_review_request(appointment):
+    """
+    Send a review request email to the patient after appointment is completed.
+    """
+    try:
+        print(f"\n{'='*60}")
+        print(f"SENDING REVIEW REQUEST - Appointment #{appointment.pk}")
+        print(f"{'='*60}")
+
+        if not appointment.patient.email:
+            raise ValueError("Patient does not have a registered email")
+
+        subject = f"How was your appointment? Leave a review! - {appointment.date}"
+
+        context = {
+            "appointment": appointment,
+            "patient": appointment.patient,
+            "doctor": appointment.doctor,
+            "date": appointment.date,
+            "start_time": appointment.start_time,
+        }
+
+        print("\n📧 Rendering review request template...")
+        patient_message = render_to_string(
+            "appointments/emails/review_request.html",
+            context
+        )
+        print("✓ Template rendered successfully")
+
+        print(f"📤 Sending review request to patient ({appointment.patient.email})...")
+        send_mail(
+            subject=subject,
+            message=f"Your appointment on {appointment.date} has been completed. We'd love to hear your feedback!",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[appointment.patient.email],
+            html_message=patient_message,
+            fail_silently=False,
+        )
+        print("✓ Review request email sent successfully")
+        logger.info(f"Review request sent to: {appointment.patient.email}")
+        print(f"\n{'='*60}")
+        print("✓ REVIEW REQUEST SENT SUCCESSFULLY")
+        print(f"{'='*60}\n")
+
+    except Exception as e:
+        print(f"\n{'='*60}")
+        print(f"❌ ERROR SENDING REVIEW REQUEST: {str(e)}")
+        print(f"{'='*60}\n")
+        logger.error(f"Error sending review request email: {str(e)}", exc_info=True)
+        raise
