@@ -199,7 +199,8 @@ def exception_delete(request, pk):
 
 @doctor_required
 def calendar_events(request):
-    from datetime import date, timedelta
+    from datetime import date, timedelta, time, datetime
+    from appointments.models import Appointment
 
     today = date.today()
     range_start = today - timedelta(weeks=4)
@@ -207,42 +208,92 @@ def calendar_events(request):
 
     events = []
 
-    schedules = DoctorSchedule.objects.filter(doctor=request.user, is_active=True)
+    # Generar horario por defecto: 8:00 AM - 6:00 PM en intervalos de 1 hora
+    DEFAULT_START = time(8, 0)
+    DEFAULT_END = time(18, 0)
+    SLOT_DURATION = 1  # en horas
+
     current = range_start
     while current <= range_end:
-        current_day = (current.weekday() + 1) % 7
-        for s in schedules:
-            if s.day_number == current_day:
+        # Crear slots disponibles por defecto
+        current_time = DEFAULT_START
+        while current_time < DEFAULT_END:
+            next_time = (datetime.combine(date.today(), current_time) + timedelta(hours=SLOT_DURATION)).time()
+            if next_time > DEFAULT_END:
+                break
+            
+            # Verificar si hay una excepción (bloqueado) en este slot
+            is_blocked = ScheduleException.objects.filter(
+                doctor=request.user,
+                date=current,
+                type="BLOCKED",
+                start_time__lte=current_time,
+                end_time__gt=current_time
+            ).exists()
+            
+            if not is_blocked:
                 events.append({
-                    "id": f"schedule-{s.pk}-{current}",
-                    "title": "Disponible",
-                    "start": f"{current}T{s.start_time}",
-                    "end": f"{current}T{s.end_time}",
+                    "id": f"slot-{current}-{current_time}",
+                    "title": "Available",
+                    "start": f"{current}T{current_time}",
+                    "end": f"{current}T{next_time}",
                     "type": "available",
-                    "className": "event-available",
-                    "scheduleId": s.pk,
+                    "classNames": ["event-available"],
                 })
+            
+            current_time = next_time
+        
         current += timedelta(days=1)
 
+    # Obtener excepciones (bloques solamente, ya que disponible está por defecto)
     exceptions = ScheduleException.objects.filter(
         doctor=request.user,
-        date__range=(range_start, range_end)
+        date__range=(range_start, range_end),
+        type="BLOCKED"
     )
-    type_map = {
-        "BLOCKED": ("Bloqueado", "event-blocked"),
-        "AVAILABLE": ("Disponible extra", "event-available"),
-    }
+    
     for exc in exceptions:
-        title, css = type_map[exc.type]
         events.append({
             "id": f"exc-{exc.pk}",
-            "title": title,
+            "title": "Blocked",
             "start": f"{exc.date}T{exc.start_time}",
             "end": f"{exc.date}T{exc.end_time}",
-            "type": exc.type.lower(),
-            "className": css,
+            "type": "blocked",
+            "classNames": ["event-blocked"],
             "reason": exc.reason,
             "exceptionId": exc.pk,
+        })
+
+    # Get confirmed appointments with patients
+    appointments = Appointment.objects.filter(
+        doctor=request.user,
+        date__range=(range_start, range_end),
+        status__in=[Appointment.Status.PENDING, Appointment.Status.CONFIRMED, Appointment.Status.COMPLETED]
+    ).select_related("patient")
+    
+    for apt in appointments:
+        if apt.status == Appointment.Status.PENDING:
+            status_label = "Pending"
+            css_class = "event-pending"
+        elif apt.status == Appointment.Status.CONFIRMED:
+            status_label = "Confirmed"
+            css_class = "event-appointment"
+        else:  # COMPLETED
+            status_label = "Completed"
+            css_class = "event-completed"
+        
+        events.append({
+            "id": f"apt-{apt.pk}",
+            "title": f"Reserved by {apt.patient.first_name}",
+            "start": f"{apt.date}T{apt.start_time}",
+            "end": f"{apt.date}T{apt.end_time}",
+            "type": "appointment",
+            "classNames": [css_class],
+            "status": apt.status,
+            "patientName": apt.patient.get_full_name(),
+            "patientEmail": apt.patient.email,
+            "reason": apt.reason,
+            "appointmentId": apt.pk,
         })
 
     return JsonResponse(events, safe=False)

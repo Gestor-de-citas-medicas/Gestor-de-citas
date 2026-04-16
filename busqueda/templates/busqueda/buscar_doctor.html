@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}Buscar Doctores | MedSync{% endblock %}
+{% block title %}Search Doctors | Medical Appointment Manager{% endblock %}
 
 {% block content %}
 <div class="view-actions-header" style="margin-bottom: 24px; text-align: center;">
-  <h1 style="font-family: 'DM Serif Display', serif; font-size: 2rem; font-weight: normal; margin-bottom: 12px;">Doctores Disponibles</h1>
-  <p style="color: var(--text-muted); font-size: 0.95rem;">Encuentra al especialista ideal y consulta sus próximos espacios libres.</p>
+  <h1 style="font-family: 'DM Serif Display', serif; font-size: 2rem; font-weight: normal; margin-bottom: 12px;">Available Doctors</h1>
+  <p style="color: var(--text-muted); font-size: 0.95rem;">Find the ideal specialist and check their available time slots.</p>
 </div>
 
 <div class="content-box" style="margin-bottom: 24px; padding: 20px;">
   <form method="GET" style="display: flex; gap: 12px; align-items: center; max-width: 600px; margin: 0 auto;">
-    <input type="text" name="especialidad" class="input-control" placeholder="🔍 Buscar por especialidad o nombre" style="flex: 1;">
-    <button type="submit" class="btn-primary" style="padding: 10px 24px; border-radius: 8px;">Buscar</button>
+    <input type="text" name="especialidad" class="input-control" placeholder="🔍 Search by specialization or name" style="flex: 1;">
+    <button type="submit" class="btn-primary" style="padding: 10px 24px; border-radius: 8px;">Search</button>
   </form>
 </div>
 
@@ -23,19 +23,19 @@
           {{ doctor.nombre|make_list|first|upper }}
         </div>
         <div>
-          <div style="font-weight: 600; font-size: 1.05rem; color: var(--text);">Dr(a). {{ doctor.nombre }}</div>
+          <div style="font-weight: 600; font-size: 1.05rem; color: var(--text);">Dr. {{ doctor.nombre }}</div>
           <div style="font-size: 0.85rem; color: var(--text-muted);">{{ doctor.especialidad }}</div>
         </div>
       </div>
       
       <button class="btn-secondary btn-disponibilidad" data-id="{{ doctor.id }}" style="width: 100%; border-radius: 10px; margin-top: auto; font-size: 0.9rem;">
-        Revisar Disponibilidad
+        Check Availability
       </button>
     </div>
   {% endfor %}
 </div>
 
-<!-- Contenedor para AJAX -->
+<!-- Container for AJAX -->
 <div id="horarios-container" style="margin-top: 32px;"></div>
 
 <script>

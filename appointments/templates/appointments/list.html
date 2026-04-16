@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}My Appointments | MedSync{% endblock %}
+{% block title %}My Appointments | Medical Appointment Manager{% endblock %}
 
 {% block content %}
 <div class="view-actions-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-  <h1 style="font-family: 'DM Serif Display', serif; font-size: 1.8rem; font-weight: normal; margin: 0;">Mis Citas</h1>
+  <h1 style="font-family: 'DM Serif Display', serif; font-size: 1.8rem; font-weight: normal; margin: 0;">My Appointments</h1>
   {% if request.user.role == "PATIENT" or request.user.role == "ADMIN" %}
-    <a href="{% url 'appointment_create' %}" class="btn-primary" style="border-radius: 10px;">+ Nueva Cita</a>
+    <a href="{% url 'appointment_create' %}" class="btn-primary" style="border-radius: 10px;">+ New Appointment</a>
   {% endif %}
 </div>
 
@@ -26,17 +26,17 @@
       <table class="med-table">
         <thead>
           <tr>
-            <th>Fecha</th>
-            <th>Hora</th>
+            <th>Date</th>
+            <th>Time</th>
             {% if request.user.role == "PATIENT" or request.user.role == "ADMIN" %}
               <th>Doctor</th>
             {% endif %}
             {% if request.user.role == "DOCTOR" or request.user.role == "ADMIN" %}
-              <th>Paciente</th>
+              <th>Patient</th>
             {% endif %}
-            <th>Motivo</th>
-            <th>Estado</th>
-            <th>Acciones</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -53,22 +53,49 @@
             <td style="color: var(--text-muted);">{{ appt.reason|default:"—"|truncatechars:40 }}</td>
             <td>
               {% if appt.status == "PENDING" %}
-                <span style="background: rgba(234,179,8,0.15); color: #eab308; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Pendiente</span>
+                <span style="background: rgba(234,179,8,0.15); color: #eab308; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Pending</span>
               {% elif appt.status == "CONFIRMED" %}
-                <span style="background: rgba(45,212,191,0.15); color: var(--accent); padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Confirmada</span>
+                <span style="background: rgba(45,212,191,0.15); color: var(--accent); padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Confirmed</span>
+              {% elif appt.status == "COMPLETED" %}
+                <span style="background: rgba(34,197,94,0.15); color: #22c55e; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Completed</span>
               {% elif appt.status == "CANCELLED" %}
-                <span style="background: rgba(248,113,113,0.15); color: var(--danger); padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Cancelada</span>
+                <span style="background: rgba(248,113,113,0.15); color: var(--danger); padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Cancelled</span>
               {% else %}
                 <span style="background: var(--surface2); color: var(--text-muted); padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">{{ appt.status }}</span>
               {% endif %}
             </td>
-            <td>
-              {% if appt.status == "PENDING" or appt.status == "CONFIRMED" %}
-                {% if request.user == appt.patient or request.user.role == "ADMIN" %}
-                  <a href="{% url 'appointment_cancel' appt.pk %}" style="display:inline-block; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.4); color: var(--danger); text-decoration: none; transition: background .15s;">Cancel</a>
+            <td style="font-size: 0.9rem; display: flex; gap: 6px; flex-wrap: wrap;">
+              <!-- Patient actions -->
+              {% if request.user == appt.patient and appt.status != "CANCELLED" and appt.status != "COMPLETED" %}
+                <a href="{% url 'appointment_cancel' appt.pk %}" style="padding: 6px 12px; border-radius: 6px; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.4); color: var(--danger); text-decoration: none; font-size: 0.75rem; transition: background .15s;">Cancel</a>
+              {% endif %}
+              
+              <!-- Doctor actions -->
+              {% if request.user == appt.doctor and appt.status == "PENDING" %}
+                <a href="{% url 'appointment_confirm' appt.pk %}" style="padding: 6px 12px; border-radius: 6px; background: rgba(45,212,191,0.1); border: 1px solid rgba(45,212,191,0.4); color: var(--accent); text-decoration: none; font-size: 0.75rem; transition: background .15s;">Confirm</a>
+              {% endif %}
+              
+              {% if request.user == appt.doctor and appt.status == "CONFIRMED" %}
+                <a href="{% url 'appointment_complete' appt.pk %}" style="padding: 6px 12px; border-radius: 6px; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.4); color: #22c55e; text-decoration: none; font-size: 0.75rem; transition: background .15s;">Complete</a>
+                <a href="{% url 'appointment_cancel' appt.pk %}" style="padding: 6px 12px; border-radius: 6px; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.4); color: var(--danger); text-decoration: none; font-size: 0.75rem; transition: background .15s;">Cancel</a>
+              {% endif %}
+              
+              <!-- Admin actions -->
+              {% if request.user.role == "ADMIN" %}
+                {% if appt.status == "PENDING" %}
+                  <a href="{% url 'appointment_confirm' appt.pk %}" style="padding: 6px 12px; border-radius: 6px; background: rgba(45,212,191,0.1); border: 1px solid rgba(45,212,191,0.4); color: var(--accent); text-decoration: none; font-size: 0.75rem;">Confirm</a>
                 {% endif %}
-              {% else %}
-                <span style="color: var(--text-muted);">—</span>
+                {% if appt.status == "CONFIRMED" %}
+                  <a href="{% url 'appointment_complete' appt.pk %}" style="padding: 6px 12px; border-radius: 6px; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.4); color: #22c55e; text-decoration: none; font-size: 0.75rem;">Complete</a>
+                {% endif %}
+                {% if appt.status != "CANCELLED" and appt.status != "COMPLETED" %}
+                  <a href="{% url 'appointment_cancel' appt.pk %}" style="padding: 6px 12px; border-radius: 6px; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.4); color: var(--danger); text-decoration: none; font-size: 0.75rem;">Cancel</a>
+                {% endif %}
+              {% endif %}
+              
+              <!-- No actions available -->
+              {% if request.user != appt.patient and request.user != appt.doctor and request.user.role != "ADMIN" %}
+                <span style="color: var(--text-muted); font-size: 0.75rem;">—</span>
               {% endif %}
             </td>
           </tr>
@@ -79,9 +106,9 @@
   {% else %}
     <div style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
       <div style="font-size: 40px; margin-bottom: 12px;">📅</div>
-      <p style="font-size: 0.95rem; margin-bottom: 24px;">No se encontraron citas.</p>
+      <p style="font-size: 0.95rem; margin-bottom: 24px;">No appointments found.</p>
       {% if request.user.role == "PATIENT" %}
-        <a href="{% url 'appointment_create' %}" class="btn-primary">Programa tu primera cita</a>
+        <a href="{% url 'appointment_create' %}" class="btn-primary">Schedule your first appointment</a>
       {% endif %}
     </div>
   {% endif %}

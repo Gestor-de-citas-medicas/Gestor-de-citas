@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Registro de Paciente | MedSync{% endblock %}
+{% block title %}Patient Registration | Medical Appointment Manager{% endblock %}
 
 {% block content %}
 <div class="content-box glass-panel" style="max-width: 500px; margin: 40px auto; border-radius: 20px;">
-  <h2 style="font-family: 'DM Serif Display', serif; font-weight: normal; margin-bottom: 10px; color: var(--accent); text-align: center;">Paciente</h2>
-  <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px; text-align: center;">Completa tus datos para agendar citas médicas.</p>
+  <h2 style="font-family: 'DM Serif Display', serif; font-weight: normal; margin-bottom: 10px; color: var(--accent); text-align: center;">Patient</h2>
+  <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px; text-align: center;">Complete your information to schedule medical appointments.</p>
 
   <form method="post" novalidate>
     {% csrf_token %}
@@ -20,11 +20,11 @@
       </div>
     {% endfor %}
 
-    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px; padding: 12px; border-radius: 10px; font-size: 1.05rem;">Registrar Paciente</button>
+    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px; padding: 12px; border-radius: 10px; font-size: 1.05rem;">Register Patient</button>
   </form>
   
   <div style="text-align: center; margin-top: 20px;">
-    <a href="{% url 'register_choice' %}" style="color: var(--text-muted); font-size: 0.85rem; text-decoration: underline;">← Volver atrás</a>
+    <a href="{% url 'register_choice' %}" style="color: var(--text-muted); font-size: 0.85rem; text-decoration: underline;">← Back</a>
   </div>
 </div>
 

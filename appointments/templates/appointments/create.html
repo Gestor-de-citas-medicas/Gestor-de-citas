@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}Agendar Cita | MedSync{% endblock %}
+{% block title %}Schedule Appointment | Medical Appointment Manager{% endblock %}
 
 {% block content %}
 <div class="content-box" style="max-width: 600px; margin: 20px auto;">
   <div style="margin-bottom: 24px; text-align: center;">
-    <h1 style="font-family: 'DM Serif Display', serif; font-size: 1.8rem; font-weight: normal; margin-bottom: 8px;">📅 Agendar Cita</h1>
-    <p style="color: var(--text-muted); font-size: 0.9rem;">Completa los detalles para reservar tu cita médica.</p>
+    <h1 style="font-family: 'DM Serif Display', serif; font-size: 1.8rem; font-weight: normal; margin-bottom: 8px;">📅 Schedule Appointment</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">Complete the details to book your medical appointment.</p>
   </div>
 
-  <form method="post" novalidate>
+  <form method="post" novalidate id="appointmentForm">
     {% csrf_token %}
 
     {% if form.non_field_errors %}
@@ -24,22 +24,18 @@
       {% if form.doctor.errors %}<div style="color: var(--danger); font-size: 0.8rem; margin-top: 4px;">{{ form.doctor.errors.0 }}</div>{% endif %}
     </div>
 
-    <div style="margin-bottom: 18px;">
-      <label class="form-label" for="{{ form.date.id_for_label }}">{{ form.date.label }}</label>
-      {{ form.date }}
-      {% if form.date.errors %}<div style="color: var(--danger); font-size: 0.8rem; margin-top: 4px;">{{ form.date.errors.0 }}</div>{% endif %}
-    </div>
-
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px;">
       <div>
-        <label class="form-label" for="{{ form.start_time.id_for_label }}">{{ form.start_time.label }}</label>
-        {{ form.start_time }}
-        {% if form.start_time.errors %}<div style="color: var(--danger); font-size: 0.8rem; margin-top: 4px;">{{ form.start_time.errors.0 }}</div>{% endif %}
+        <label class="form-label" for="{{ form.date.id_for_label }}">{{ form.date.label }}</label>
+        {{ form.date }}
+        {% if form.date.errors %}<div style="color: var(--danger); font-size: 0.8rem; margin-top: 4px;">{{ form.date.errors.0 }}</div>{% endif %}
       </div>
       <div>
-        <label class="form-label" for="{{ form.end_time.id_for_label }}">{{ form.end_time.label }}</label>
-        {{ form.end_time }}
-        {% if form.end_time.errors %}<div style="color: var(--danger); font-size: 0.8rem; margin-top: 4px;">{{ form.end_time.errors.0 }}</div>{% endif %}
+        <label class="form-label" for="availableSlots">Available time</label>
+        <select id="availableSlots" name="start_time" class="input-control" style="cursor: pointer;">
+          <option value="">-- Select a time --</option>
+        </select>
+        <div id="slotsError" style="color: var(--danger); font-size: 0.8rem; margin-top: 4px; display: none;">Select doctor and date first</div>
       </div>
     </div>
 
@@ -50,19 +46,69 @@
     </div>
 
     <div style="display: flex; gap: 14px;">
-      <a href="{% url 'appointment_list' %}" class="btn-secondary" style="flex: 1; text-align: center;">Cancelar</a>
-      <button type="submit" class="btn-primary" style="flex: 2;">Reservar Cita</button>
+      <a href="{% url 'appointment_list' %}" class="btn-secondary" style="flex: 1; text-align: center;">Cancel</a>
+      <button type="submit" class="btn-primary" style="flex: 2;">Schedule Appointment</button>
     </div>
   </form>
 </div>
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
+    const doctorSelect = document.getElementById("id_doctor");
+    const dateInput = document.getElementById("id_date");
+    const slotsSelect = document.getElementById("availableSlots");
+    const slotsError = document.getElementById("slotsError");
+
+    // Apply styles to inputs
     document.querySelectorAll("input, select, textarea").forEach(input => {
-      if(input.type !== 'submit' && input.type !== 'hidden') {
+      if(input.type !== 'submit' && input.type !== 'hidden' && input.id !== 'availableSlots') {
         input.classList.add("input-control");
       }
     });
+    slotsSelect.classList.add("input-control");
+
+    // Load slots when doctor or date changes
+    async function loadSlots() {
+      const doctorId = doctorSelect.value;
+      const date = dateInput.value;
+
+      if (!doctorId || !date) {
+        slotsSelect.innerHTML = '<option value="">-- Select a time --</option>';
+        slotsError.style.display = 'block';
+        return;
+      }
+
+      slotsError.style.display = 'none';
+      slotsSelect.disabled = true;
+      slotsSelect.innerHTML = '<option value="">Loading...</option>';
+
+      try {
+        const response = await fetch(
+          `/appointments/api/available-slots/?doctor_id=${doctorId}&date=${date}`
+        );
+        const data = await response.json();
+
+        if (response.ok && data.slots && data.slots.length > 0) {
+          slotsSelect.innerHTML = '<option value="">-- Select a time --</option>';
+          data.slots.forEach(slot => {
+            const option = document.createElement('option');
+            option.value = slot.time;
+            option.textContent = slot.display;
+            slotsSelect.appendChild(option);
+          });
+        } else {
+          slotsSelect.innerHTML = '<option value="">No available times</option>';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        slotsSelect.innerHTML = '<option value="">Error loading times</option>';
+      }
+
+      slotsSelect.disabled = false;
+    }
+
+    doctorSelect.addEventListener("change", loadSlots);
+    dateInput.addEventListener("change", loadSlots);
   });
 </script>
 {% endblock %}

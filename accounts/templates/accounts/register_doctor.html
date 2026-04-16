@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Registro de Doctor | MedSync{% endblock %}
+{% block title %}Doctor Registration | Medical Appointment Manager{% endblock %}
 
 {% block content %}
 <div class="content-box glass-panel" style="max-width: 500px; margin: 40px auto; border-radius: 20px;">
   <h2 style="font-family: 'DM Serif Display', serif; font-weight: normal; margin-bottom: 10px; color: var(--accent2); text-align: center;">Doctor</h2>
-  <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px; text-align: center;">Únete al equipo y publica tu disponibilidad.</p>
+  <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px; text-align: center;">Join the team and publish your availability.</p>
 
   <form method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
@@ -20,11 +20,11 @@
       </div>
     {% endfor %}
 
-    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px; padding: 12px; border-radius: 10px; font-size: 1.05rem; background: linear-gradient(135deg, var(--accent2), #4f46e5); color:#fff;">Registrar Doctor</button>
+    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px; padding: 12px; border-radius: 10px; font-size: 1.05rem; background: linear-gradient(135deg, var(--accent2), #4f46e5); color:#fff;">Register Doctor</button>
   </form>
   
   <div style="text-align: center; margin-top: 20px;">
-    <a href="{% url 'register_choice' %}" style="color: var(--text-muted); font-size: 0.85rem; text-decoration: underline;">← Volver atrás</a>
+    <a href="{% url 'register_choice' %}" style="color: var(--text-muted); font-size: 0.85rem; text-decoration: underline;">← Back</a>
   </div>
 </div>
 

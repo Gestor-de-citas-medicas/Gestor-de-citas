@@ -1,15 +1,15 @@
 <div class="content-box" style="animation: slideIn 0.3s ease-out;">
   <div style="margin-bottom: 20px;">
-    <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.4rem; font-weight: normal; margin-bottom: 8px;">Horarios Disponibles</h3>
-    <p style="color: var(--text-muted); font-size: 0.85rem;">Dr(a). {{ doctor.nombre }}</p>
+    <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.4rem; font-weight: normal; margin-bottom: 8px;">Available Time Slots</h3>
+    <p style="color: var(--text-muted); font-size: 0.85rem;">Dr. {{ doctor.nombre }}</p>
   </div>
 
   <div class="table-responsive">
     <table class="med-table" style="width: 100%;">
       <thead>
         <tr>
-          <th>Fecha</th>
-          <th>Bloque de Hora</th>
+          <th>Date</th>
+          <th>Time Slot</th>
         </tr>
       </thead>
       <tbody>
@@ -21,7 +21,7 @@
         {% empty %}
         <tr>
           <td colspan="2" style="text-align: center; padding: 32px; color: var(--text-muted);">
-            No hay horarios disponibles próximamente.
+            No available time slots.
           </td>
         </tr>
         {% endfor %}

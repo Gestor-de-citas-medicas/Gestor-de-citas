@@ -1,6 +1,6 @@
 {% load static %}
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -12,8 +12,8 @@
   <main class="auth-wrap">
     <section class="auth-card" aria-label="Autenticación">
 
-      <!-- Panel izquierdo: estilo hospital -->
-      <aside class="auth-side" aria-label="Información del sistema">
+      <!-- Left Panel: Hospital Style -->
+      <aside class="auth-side" aria-label="System Information">
         <div class="side-brand">
           <div class="brand-badge" aria-hidden="true">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
@@ -22,25 +22,25 @@
             </svg>
           </div>
           <div class="brand-title">
-            <strong>MAMP</strong>
-            <span>Medical Appointment Platform</span>
+            <strong>MAM</strong>
+            <span>Medical Appointment Manager</span>
           </div>
         </div>
 
-        <h2 class="side-headline">Gestión de citas médica, clara y segura.</h2>
+        <h2 class="side-headline">Clear and secure medical appointment management.</h2>
         <p class="side-text">
-          Centraliza la programación, reprogramación y notificaciones de citas para pacientes, médicos y administradores.
+          Centralize scheduling, rescheduling, and appointment notifications for patients, doctors, and administrators.
         </p>
 
         <ul class="side-list">
-          <li><span class="dot"></span><span>Acceso por roles (Paciente / Médico / Admin)</span></li>
-          <li><span class="dot"></span><span>Evita doble reserva y conflictos de agenda</span></li>
-          <li><span class="dot"></span><span>Notificaciones y trazabilidad (audit logs)</span></li>
+          <li><span class="dot"></span><span>Role-based access (Patient / Doctor / Admin)</span></li>
+          <li><span class="dot"></span><span>Prevents double bookings and scheduling conflicts</span></li>
+          <li><span class="dot"></span><span>Notifications and auditability (audit logs)</span></li>
         </ul>
       </aside>
 
-      <!-- Panel derecho: formulario -->
-      <section class="auth-main" aria-label="Formulario">
+      <!-- Right Panel: Form -->
+      <section class="auth-main" aria-label="Authentication Form">
         <div class="form-shell">
           {% block content %}{% endblock %}
         </div>

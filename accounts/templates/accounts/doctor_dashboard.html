@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Doctor Dashboard — Calendario{% endblock %}
+{% block title %}Doctor Dashboard — Calendar{% endblock %}
 
 {% block extra_head %}
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
@@ -30,7 +30,7 @@
       flex-shrink: 0;
     }
     .dot-available  { background: var(--accent); }
-    .dot-booked     { background: var(--accent2); }
+    .dot-appointment { background: #a855f7; }
     .dot-blocked    { background: var(--danger); }
 
     .stats-grid {
@@ -147,6 +147,21 @@
       border-left: 3px solid var(--available-border) !important;
       color: var(--accent) !important;
     }
+    .event-pending {
+      background: rgba(234,179,8,0.18) !important;
+      border-left: 3px solid #eab308 !important;
+      color: #eab308 !important;
+    }
+    .event-appointment {
+      background: rgba(168,85,247,0.18) !important;
+      border-left: 3px solid #a855f7 !important;
+      color: #a855f7 !important;
+    }
+    .event-completed {
+      background: rgba(34,197,94,0.18) !important;
+      border-left: 3px solid #22c55e !important;
+      color: #22c55e !important;
+    }
     .event-booked {
       background: var(--booked) !important;
       border-left: 3px solid var(--booked-border) !important;
@@ -254,50 +269,50 @@
 {% endblock %}
 
 {% block sidebar_extra %}
-  <button class="btn-add" onclick="openModal()">+ Nueva Disponibilidad</button>
+  <button class="btn-add" onclick="openModal()">+ New Availability</button>
 
   <div class="sidebar-section">
-    <h3>Esta Semana</h3>
+    <h3>This Week</h3>
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-num" id="stat-available">0</div>
-        <div class="stat-lbl">Disponibles</div>
+        <div class="stat-lbl">Available</div>
       </div>
       <div class="stat-card">
         <div class="stat-num" style="color:var(--accent2)" id="stat-booked">0</div>
-        <div class="stat-lbl">Reservadas</div>
+        <div class="stat-lbl">Reserved</div>
       </div>
       <div class="stat-card" style="grid-column:span 2">
         <div class="stat-num" style="color:var(--danger)" id="stat-blocked">0</div>
-        <div class="stat-lbl">Bloqueadas</div>
+        <div class="stat-lbl">Blocked</div>
       </div>
     </div>
   </div>
 
   <div class="sidebar-section">
-    <h3>Referencias</h3>
-    <div class="legend-item"><div class="legend-dot dot-available"></div> Disponible</div>
-    <div class="legend-item"><div class="legend-dot dot-booked"></div> Reservada</div>
-    <div class="legend-item"><div class="legend-dot dot-blocked"></div> Bloqueada</div>
+    <h3>Legend</h3>
+    <div class="legend-item"><div class="legend-dot dot-available"></div> Available</div>
+    <div class="legend-item"><div class="legend-dot dot-appointment"></div> Reserved</div>
+    <div class="legend-item"><div class="legend-dot dot-blocked"></div> Blocked</div>
   </div>
 
   <div class="sidebar-section" style="margin-top:auto">
-    <h3>Instrucciones</h3>
+    <h3>Instructions</h3>
     <p style="font-size:0.78rem;color:var(--text-muted);line-height:1.5">
-      Haz clic en un slot del calendario para agregar disponibilidad.<br><br>
-      Haz clic en un evento existente para editarlo o eliminarlo.<br><br>
-      Los slots <strong style="color:var(--danger)">bloqueados</strong> no serán visibles para los pacientes.
+      Click on a calendar slot to add availability.<br><br>
+      Click on an existing event to edit or delete it.<br><br>
+      <strong style="color:var(--danger)">Blocked</strong> slots will not be visible to patients.
     </p>
   </div>
 {% endblock %}
 
 {% block content %}
   <div class="view-actions-header">
-    <h1>Mi Calendario</h1>
+    <h1>Doctor's Calendar</h1>
     <div class="view-tabs">
-      <button class="view-tab active" onclick="switchView('timeGridWeek', this)">Semana</button>
-      <button class="view-tab" onclick="switchView('timeGridDay', this)">Día</button>
-      <button class="view-tab" onclick="switchView('dayGridMonth', this)">Mes</button>
+      <button class="view-tab" onclick="switchView('timeGridWeek', this)">Week</button>
+      <button class="view-tab" onclick="switchView('timeGridDay', this)">Day</button>
+      <button class="view-tab" onclick="switchView('dayGridMonth', this)">Month</button>
     </div>
   </div>
 
@@ -306,50 +321,50 @@
   <!-- Modal -->
   <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
     <div class="modal">
-      <h2 id="modal-title">Nueva Disponibilidad</h2>
+      <h2 id="modal-title">New Availability</h2>
 
       <div class="form-group">
-        <label class="form-label">Tipo de Bloque</label>
+        <label class="form-label">Block Type</label>
         <div class="type-selector">
-          <button class="type-btn sel-available" id="btn-available" onclick="selectType('available')">✓ Disponible</button>
-          <button class="type-btn" id="btn-blocked" onclick="selectType('blocked')">✗ Bloquear</button>
+          <button class="type-btn sel-available" id="btn-available" onclick="selectType('available')">✓ Available</button>
+          <button class="type-btn" id="btn-blocked" onclick="selectType('blocked')">✗ Block</button>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">Fecha</label>
+          <label class="form-label">Date</label>
           <input type="date" class="input-control" id="input-date">
         </div>
         <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">Recurrencia</label>
+          <label class="form-label">Recurrence</label>
           <select class="input-control" id="input-recurrence">
-            <option value="once">Solo esta vez</option>
-            <option value="weekly">Cada semana</option>
+            <option value="once">Once Only</option>
+            <option value="weekly">Every Week</option>
           </select>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">Hora Inicio</label>
+          <label class="form-label">Start Time</label>
           <input type="time" class="input-control" id="input-start" value="08:00">
         </div>
         <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">Hora Fin</label>
+          <label class="form-label">End Time</label>
           <input type="time" class="input-control" id="input-end" value="09:00">
         </div>
       </div>
 
       <div class="form-group" style="margin-top:14px">
-        <label class="form-label">Notas (opcional)</label>
-        <input type="text" class="input-control" id="input-notes" placeholder="Ej: Solo urgencias">
+        <label class="form-label">Notes (optional)</label>
+        <input type="text" class="input-control" id="input-notes" placeholder="E.g: Emergency only">
       </div>
 
       <div class="modal-actions">
-        <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
-        <button class="btn-delete" id="btn-delete" onclick="deleteEvent()" style="display:none">Eliminar</button>
-        <button class="btn-save" onclick="saveEvent()">Guardar</button>
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-delete" id="btn-delete" onclick="deleteEvent()" style="display:none">Delete</button>
+        <button class="btn-save" onclick="saveEvent()">Save</button>
       </div>
     </div>
   </div>
@@ -364,14 +379,7 @@
   let editingEventId = null;
   let selectedType = 'available';
   let eventCounter = 0;
-
-  const events = [
-    { id: ++eventCounter, title: '🟢 Disponible', start: nextDate(1, '08:00'), end: nextDate(1, '10:00'), type: 'available', className: 'event-available' },
-    { id: ++eventCounter, title: '🟣 Cita: Carlos M.', start: nextDate(2, '09:00'), end: nextDate(2, '09:30'), type: 'booked', className: 'event-booked' },
-    { id: ++eventCounter, title: '🟢 Disponible', start: nextDate(2, '10:00'), end: nextDate(2, '12:00'), type: 'available', className: 'event-available' },
-    { id: ++eventCounter, title: '🔴 Bloqueado', start: nextDate(3, '08:00'), end: nextDate(3, '09:30'), type: 'blocked', className: 'event-blocked' },
-    { id: ++eventCounter, title: '🟢 Disponible', start: nextDate(4, '14:00'), end: nextDate(4, '17:00'), type: 'available', className: 'event-available' },
-  ];
+  let events = [];
 
   function nextDate(daysFromToday, time) {
     const d = new Date();
@@ -379,10 +387,23 @@
     return d.toISOString().slice(0, 10) + 'T' + time;
   }
 
+  // Load events from API
+  async function loadEvents() {
+    try {
+      const response = await fetch('/accounts/doctor/calendar/events/');
+      events = await response.json();
+      if (calendar) {
+        calendar.refetchEvents();
+      }
+    } catch (error) {
+      console.error('Error loading events:', error);
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
       initialView: 'timeGridWeek',
-      locale: 'es',
+      locale: 'en',
       firstDay: 1,
       slotMinTime: '06:00:00',
       slotMaxTime: '21:00:00',
@@ -392,31 +413,54 @@
         center: 'title',
         right: ''
       },
-      events: events,
+      events: function(info, successCallback, failureCallback) {
+        fetch('/accounts/doctor/calendar/events/')
+          .then(r => r.json())
+          .then(data => {
+            events = data;
+            successCallback(data);
+          })
+          .catch(err => {
+            console.error('Error:', err);
+            failureCallback(err);
+          });
+      },
       selectable: true,
       select: function (info) {
         openModal(null, info.startStr, info.endStr);
       },
       eventClick: function (info) {
+        const eventType = info.event.extendedProps?.type || info.event._def.extendedProps?.type;
+        if (eventType === 'appointment') return;
         const ev = events.find(e => e.id == info.event.id);
-        if (!ev || ev.type === 'booked') return;
+        if (!ev) return;
         openModal(ev);
       },
       eventContent: function (arg) {
-        const ev = events.find(e => e.id == arg.event.id);
-        const icons = { available: '🟢', booked: '🟣', blocked: '🔴' };
-        const labels = { available: 'Disponible', booked: arg.event.title.replace(/^🟣 /, ''), blocked: 'Bloqueado' };
-        const type = ev ? ev.type : 'available';
+        const props = arg.event.extendedProps || {};
+        const type = props.type || 'available';
+        const patientName = props.patientName || '';
+        const reason = props.reason || '';
+        const icons = { available: '🟢', appointment: '🟣', pending: '🟡', completed: '🟢', blocked: '🔴' };
+        const labels = {
+          available: 'Available',
+          appointment: patientName ? `Reserved by ${patientName.split(' ')[0]}` : 'Reserved',
+          pending: 'Pending',
+          completed: 'Completed',
+          blocked: 'Blocked'
+        };
+
         return {
           html: `<div style="padding:2px 4px;line-height:1.3">
-            <div style="font-weight:600;font-size:0.78rem">${icons[type]} ${labels[type]}</div>
-            ${ev && ev.notes ? `<div style="font-size:0.7rem;opacity:.7">${ev.notes}</div>` : ''}
+            <div style="font-weight:600;font-size:0.78rem">${icons[type] || '•'} ${labels[type] || arg.event.title}</div>
+            ${reason ? `<div style="font-size:0.7rem;opacity:.7">${reason}</div>` : ''}
           </div>`
         };
       },
       datesSet: updateStats
     });
     calendar.render();
+    loadEvents();
     updateStats();
   });
 
@@ -433,7 +477,7 @@
       return s >= range.start && s < range.end;
     });
     document.getElementById('stat-available').textContent = inRange.filter(e => e.type === 'available').length;
-    document.getElementById('stat-booked').textContent    = inRange.filter(e => e.type === 'booked').length;
+    document.getElementById('stat-booked').textContent    = inRange.filter(e => e.type === 'appointment').length;
     document.getElementById('stat-blocked').textContent   = inRange.filter(e => e.type === 'blocked').length;
   }
 
@@ -442,7 +486,7 @@
     selectedType = ev ? ev.type : 'available';
     updateTypeButtons();
 
-    document.getElementById('modal-title').textContent = ev ? 'Editar Bloque' : 'Nueva Disponibilidad';
+    document.getElementById('modal-title').textContent = ev ? 'Edit Block' : 'New Availability';
     document.getElementById('btn-delete').style.display = ev ? 'block' : 'none';
 
     const today = new Date().toISOString().slice(0, 10);
@@ -491,11 +535,11 @@
     const end   = document.getElementById('input-end').value;
     const notes = document.getElementById('input-notes').value;
 
-    if (!date || !start || !end) { showToast('Completa todos los campos', 'error'); return; }
-    if (start >= end) { showToast('La hora de fin debe ser mayor al inicio', 'error'); return; }
+    if (!date || !start || !end) { showToast('Complete all fields', 'error'); return; }
+    if (start >= end) { showToast('End time must be greater than start time', 'error'); return; }
 
     const classMap = { available: 'event-available', blocked: 'event-blocked' };
-    const titleMap = { available: 'Disponible', blocked: 'Bloqueado' };
+    const titleMap = { available: 'Available', blocked: 'Blocked' };
 
     if (editingEventId) {
       const idx = events.findIndex(e => e.id === editingEventId);
@@ -510,13 +554,13 @@
       ev.setEnd(`${date}T${end}`);
       ev.setProp('classNames', [classMap[selectedType]]);
       calendar.refetchEvents();
-      showToast('Bloque actualizado ✓', 'success');
+      showToast('Block updated ✓', 'success');
     } else {
       const id = ++eventCounter;
       const newEv = {
         id, title: titleMap[selectedType],
         start: `${date}T${start}`, end: `${date}T${end}`,
-        type: selectedType, className: classMap[selectedType], notes
+        type: selectedType, classNames: [classMap[selectedType]], notes
       };
       events.push(newEv);
       calendar.addEvent(newEv);

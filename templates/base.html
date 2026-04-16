@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -342,8 +342,8 @@
   </div>
   {% else %}
   <div>
-    <a href="{% url 'login' %}" class="btn-secondary" style="margin-right: 10px;">Ingresar</a>
-    <a href="{% url 'register_choice' %}" class="btn-primary">Registrarse</a>
+    <a href="{% url 'login' %}" class="btn-secondary" style="margin-right: 10px;">Login</a>
+    <a href="{% url 'register_choice' %}" class="btn-primary">Register</a>
   </div>
   {% endif %}
 </header>
@@ -358,14 +358,14 @@
           <i class="fa-regular fa-calendar-days"></i> Mi Calendario
         </a>
         <a href="{% url 'appointment_list' %}" class="nav-item {% if request.resolver_match.url_name == 'appointment_list' %}active{% endif %}">
-          <i class="fa-solid fa-user-doctor"></i> Mis Citas
+          <i class="fa-solid fa-user-doctor"></i> My Appointments
         </a>
       {% elif user.role == 'PATIENT' %}
         <a href="{% url 'buscar_doctor' %}" class="nav-item {% if request.resolver_match.url_name == 'buscar_doctor' or request.resolver_match.url_name == 'disponibilidad' %}active{% endif %}">
-          <i class="fa-solid fa-magnifying-glass"></i> Buscar Doctor
+          <i class="fa-solid fa-magnifying-glass"></i> Find Doctor
         </a>
         <a href="{% url 'appointment_list' %}" class="nav-item {% if request.resolver_match.url_name == 'appointment_list' %}active{% endif %}">
-          <i class="fa-regular fa-address-book"></i> Mis Citas
+          <i class="fa-regular fa-address-book"></i> My Appointments
         </a>
       {% endif %}
     </div>

@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}Iniciar sesión | MAMP{% endblock %}
+{% block title %}Sign In | Medical Appointment Manager{% endblock %}
 
 {% block content %}
 <div class="content-box glass-panel" style="max-width: 440px; margin: 80px auto; padding: 40px; text-align: center; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4);">
   <div style="width: 64px; height: 64px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 20px; box-shadow: 0 8px 16px rgba(45, 212, 191, 0.2);">🏥</div>
   
-  <h1 style="font-family: 'DM Serif Display', serif; font-size: 2.2rem; font-weight: normal; margin-bottom: 8px;">Bienvenido</h1>
-  <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 32px; line-height: 1.5;">Ingresa tus credenciales para acceder a la plataforma médica MAMP.</p>
+  <h1 style="font-family: 'DM Serif Display', serif; font-size: 2.2rem; font-weight: normal; margin-bottom: 8px;">Welcome</h1>
+  <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 32px; line-height: 1.5;">Enter your credentials to access the Medical Appointment Manager platform.</p>
 
   {% if form.errors %}
     <div style="background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); border-radius: 12px; padding: 14px; font-size: 0.85rem; color: var(--danger); margin-bottom: 24px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
-      <i class="fa-solid fa-circle-exclamation"></i> Usuario o contraseña incorrectos.
+      <i class="fa-solid fa-circle-exclamation"></i> Incorrect username or password.
     </div>
   {% endif %}
 
@@ -19,7 +19,7 @@
     {% csrf_token %}
 
     <div style="margin-bottom: 20px;">
-      <label for="id_username" class="form-label" style="font-size: 0.75rem; font-weight: 600;">Usuario</label>
+      <label for="id_username" class="form-label" style="font-size: 0.75rem; font-weight: 600;">Username</label>
       <div style="position: relative;">
         <i class="fa-regular fa-user" style="position: absolute; left: 14px; top: 13px; color: var(--text-muted);"></i>
         {{ form.username }}
@@ -27,19 +27,19 @@
     </div>
 
     <div style="margin-bottom: 32px;">
-      <label for="id_password" class="form-label" style="font-size: 0.75rem; font-weight: 600;">Contraseña</label>
+      <label for="id_password" class="form-label" style="font-size: 0.75rem; font-weight: 600;">Password</label>
       <div style="position: relative;">
         <i class="fa-solid fa-lock" style="position: absolute; left: 14px; top: 13px; color: var(--text-muted);"></i>
         {{ form.password }}
       </div>
     </div>
 
-    <button type="submit" class="btn-primary" style="width: 100%; border-radius: 14px; padding: 14px; font-size: 1.05rem; box-shadow: 0 6px 15px rgba(45, 212, 191, 0.2);">Ingresar a MAMP</button>
+    <button type="submit" class="btn-primary" style="width: 100%; border-radius: 14px; padding: 14px; font-size: 1.05rem; box-shadow: 0 6px 15px rgba(45, 212, 191, 0.2);">Sign In</button>
   </form>
 
   <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.05);">
-    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">¿No tienes cuenta registrada?</p>
-    <a href="{% url 'register_choice' %}" class="btn-secondary" style="width: 100%; border-radius: 14px; padding: 12px; background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.1);">Crear cuenta nueva</a>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">Don't have an account?</p>
+    <a href="{% url 'register_choice' %}" class="btn-secondary" style="width: 100%; border-radius: 14px; padding: 12px; background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.1);">Create new account</a>
   </div>
 </div>
 

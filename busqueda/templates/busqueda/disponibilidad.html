@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 
-{% block title %}Disponibilidad | MedSync{% endblock %}
+{% block title %}Availability | Medical Appointment Manager{% endblock %}
 
 {% block content %}
 <div class="content-box" style="max-width: 600px; margin: 40px auto;">
   <div style="margin-bottom: 20px; text-align: center;">
-    <h1 style="font-family: 'DM Serif Display', serif; font-size: 1.6rem; font-weight: normal; margin-bottom: 8px;">Disponibilidad</h1>
-    <p style="color: var(--text-muted); font-size: 0.95rem;">Dr(a). {{ doctor.nombre }}</p>
+    <h1 style="font-family: 'DM Serif Display', serif; font-size: 1.6rem; font-weight: normal; margin-bottom: 8px;">Availability</h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem;">Dr. {{ doctor.nombre }}</p>
   </div>
 
   <div class="table-responsive">
     <table class="med-table" style="width: 100%;">
       <thead>
         <tr>
-          <th>Fecha</th>
-          <th>Hora</th>
+          <th>Date</th>
+          <th>Time</th>
         </tr>
       </thead>
       <tbody>
@@ -26,7 +26,7 @@
         {% empty %}
         <tr>
           <td colspan="2" style="text-align: center; padding: 32px; color: var(--text-muted);">
-            No hay horarios disponibles próximamente.
+            No available time slots.
           </td>
         </tr>
         {% endfor %}
@@ -35,7 +35,7 @@
   </div>
 
   <div style="margin-top: 32px; text-align: center;">
-    <a href="{% url 'buscar_doctor' %}" class="btn-secondary">Volver al buscador</a>
+    <a href="{% url 'buscar_doctor' %}" class="btn-secondary">Back to Search</a>
   </div>
 </div>
 {% endblock %}

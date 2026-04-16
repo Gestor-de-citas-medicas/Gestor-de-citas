@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        .header {
+            background-color: #dc3545;
+            color: white;
+            padding: 20px;
+            border-radius: 8px 8px 0 0;
+            text-align: center;
+        }
+        .content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 0 0 8px 8px;
+        }
+        .appointment-details {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-left: 4px solid #dc3545;
+            margin: 15px 0;
+        }
+        .detail-row {
+            margin: 8px 0;
+        }
+        .label {
+            font-weight: bold;
+            color: #555;
+        }
+        .footer {
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            margin-top: 20px;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Appointment Cancelled</h1>
+        </div>
+        <div class="content">
+            <p>Hello <strong>{{ patient.first_name }}</strong>,</p>
+            
+            <p>We regret to inform you that your medical appointment has been cancelled. Details:</p>
+            
+            <div class="appointment-details">
+                <div class="detail-row">
+                    <span class="label">Original Date:</span> {{ date|date:"F d, Y" }}
+                </div>
+                <div class="detail-row">
+                    <span class="label">Original Time:</span> {{ start_time|time:"H:i" }}
+                </div>
+                <div class="detail-row">
+                    <span class="label">Doctor:</span> Dr. {{ doctor.first_name }} {{ doctor.last_name }}
+                </div>
+            </div>
+            
+            <p>If you wish to reschedule your appointment, please access our system or contact us directly.</p>
+            
+            <p>Best regards,<br/>
+            <strong>Medical Appointment Manager</strong></p>
+            
+            <div class="footer">
+                <p>This is an automated email. Please do not reply to this message.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

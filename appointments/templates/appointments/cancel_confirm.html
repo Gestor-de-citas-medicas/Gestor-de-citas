@@ -1,24 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}Cancel Appointment | MedSync{% endblock %}
+{% block title %}Cancel Appointment | Medical Appointment Manager{% endblock %}
 
 {% block content %}
 <div class="content-box" style="max-width: 500px; margin: 40px auto; text-align: center; border-color: rgba(248,113,113,0.3);">
   <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
-  <h1 style="font-family: 'DM Serif Display', serif; font-size: 1.6rem; font-weight: normal; margin-bottom: 12px; color: var(--text);">¿Cancelar Cita?</h1>
+  <h1 style="font-family: 'DM Serif Display', serif; font-size: 1.6rem; font-weight: normal; margin-bottom: 12px; color: var(--text);">Cancel Appointment?</h1>
   
   <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 32px; line-height: 1.6;">
-    Estás a punto de cancelar la cita del <strong style="color: var(--text);">{{ appointment.date }}</strong> 
-    de <strong style="color: var(--text);">{{ appointment.start_time }}</strong> a <strong style="color: var(--text);">{{ appointment.end_time }}</strong><br/>
-    con el Dr. <strong style="color: var(--text);">{{ appointment.doctor.get_full_name|default:appointment.doctor.username }}</strong>
-    {% if appointment.reason %}<br/><span style="color: var(--accent2); font-size: 0.85rem;">Motivo: {{ appointment.reason }}</span>{% endif %}
+    You are about to cancel the appointment on <strong style="color: var(--text);">{{ appointment.date }}</strong> 
+    from <strong style="color: var(--text);">{{ appointment.start_time }}</strong> to <strong style="color: var(--text);">{{ appointment.end_time }}</strong><br/>
+    with Dr. <strong style="color: var(--text);">{{ appointment.doctor.get_full_name|default:appointment.doctor.username }}</strong>
+    {% if appointment.reason %}<br/><span style="color: var(--accent2); font-size: 0.85rem;">Reason: {{ appointment.reason }}</span>{% endif %}
   </p>
 
   <form method="post">
     {% csrf_token %}
     <div style="display: flex; gap: 14px;">
-      <a href="{% url 'appointment_list' %}" class="btn-secondary" style="flex: 1; text-align: center;">Mantenerla</a>
-      <button type="submit" class="btn-primary" style="flex: 1; background: linear-gradient(135deg, #f87171, #dc2626); color: white;">Sí, cancelar</button>
+      <a href="{% url 'appointment_list' %}" class="btn-secondary" style="flex: 1; text-align: center;">Keep It</a>
+      <button type="submit" class="btn-primary" style="flex: 1; background: linear-gradient(135deg, #f87171, #dc2626); color: white;">Yes, Cancel</button>
     </div>
   </form>
 </div>

@@ -34,7 +34,7 @@ class DoctorScheduleForm(forms.ModelForm):
 
         if start and end and start >= end:
             raise forms.ValidationError(
-                "La hora de fin debe ser mayor a la hora de inicio."
+                "End time must be greater than start time."
             )
         return cleaned
 
@@ -62,7 +62,7 @@ class ScheduleExceptionForm(forms.ModelForm):
             }),
             "reason": forms.TextInput(attrs={
                 "class": "form-control",
-                "placeholder": "Ej: Reunión administrativa, vacaciones..."
+                "placeholder": "E.g: Administrative meeting, vacation..."
             }),
         }
 
@@ -74,23 +74,23 @@ class ScheduleExceptionForm(forms.ModelForm):
 
         if start and end and start >= end:
             raise forms.ValidationError(
-                "La hora de fin debe ser mayor a la hora de inicio."
+                "End time must be greater than start time."
             )
 
         if date:
             from datetime import date as today_date
             if date < today_date.today():
                 raise forms.ValidationError(
-                    "No puedes crear bloques en fechas pasadas."
+                    "You cannot create blocks in past dates."
                 )
 
         return cleaned
 
 
 class PatientRegisterForm(UserCreationForm):
-    first_name = forms.CharField(max_length=150, label="Nombre")
-    last_name = forms.CharField(max_length=150, label="Apellido")
-    email = forms.EmailField(label="Correo electrónico")
+    first_name = forms.CharField(max_length=150, label="First Name")
+    last_name = forms.CharField(max_length=150, label="Last Name")
+    email = forms.EmailField(label="Email Address")
 
     class Meta:
         model = User
@@ -123,29 +123,29 @@ class PatientRegisterForm(UserCreationForm):
 
 
 class DoctorRegisterForm(UserCreationForm):
-    first_name = forms.CharField(max_length=150, label="Nombre")
-    last_name = forms.CharField(max_length=150, label="Apellido")
-    email = forms.EmailField(label="Correo electrónico")
+    first_name = forms.CharField(max_length=150, label="First Name")
+    last_name = forms.CharField(max_length=150, label="Last Name")
+    email = forms.EmailField(label="Email Address")
     specialty = forms.ChoiceField(
-        label="Especialidad",
+        label="Specialty",
         choices=DoctorProfile.Specialty.choices
     )
     license_number = forms.CharField(
         max_length=50,
-        label="Registro médico / Licencia"
+        label="Medical License / Registration"
     )
     phone = forms.CharField(
         max_length=20,
-        label="Teléfono",
+        label="Phone",
         required=False
     )
     bio = forms.CharField(
-        label="Descripción profesional",
+        label="Professional Bio",
         required=False,
         widget=forms.Textarea(attrs={"rows": 4})
     )
     avatar = forms.ImageField(
-        label="Foto de perfil",
+        label="Profile Photo",
         required=False
     )
 
@@ -163,13 +163,13 @@ class DoctorRegisterForm(UserCreationForm):
     def clean_email(self):
         email = self.cleaned_data["email"].strip().lower()
         if User.objects.filter(email__iexact=email).exists():
-            raise forms.ValidationError("Ya existe un usuario con este correo.")
+            raise forms.ValidationError("A user with this email already exists.")
         return email
 
     def clean_license_number(self):
         license_number = self.cleaned_data["license_number"].strip()
         if DoctorProfile.objects.filter(license_number__iexact=license_number).exists():
-            raise forms.ValidationError("Ese número de licencia ya está registrado.")
+            raise forms.ValidationError("That license number is already registered.")
         return license_number
 
     @transaction.atomic
