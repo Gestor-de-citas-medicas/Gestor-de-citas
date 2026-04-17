@@ -1,5 +1,6 @@
 from django.contrib.auth.views import LoginView
 from django.contrib.auth import login
+from django.contrib import messages
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
@@ -8,11 +9,14 @@ from django.views.decorators.http import require_http_methods
 from django.core.exceptions import ValidationError
 
 from .models import DoctorSchedule, ScheduleException
+from django.contrib.auth import update_session_auth_hash
 from .forms import (
     DoctorScheduleForm,
     ScheduleExceptionForm,
     PatientRegisterForm,
     DoctorRegisterForm,
+    PatientProfileUpdateForm,
+    DoctorProfileUpdateForm,
 )
 
 
@@ -209,21 +213,21 @@ def calendar_events(request):
 
     events = []
 
-    # Generar horario por defecto: 8:00 AM - 6:00 PM en intervalos de 1 hora
+    # Generate default schedule: 8:00 AM - 6:00 PM in 1-hour intervals
     DEFAULT_START = time(8, 0)
     DEFAULT_END = time(18, 0)
     SLOT_DURATION = 1  # en horas
 
     current = range_start
     while current <= range_end:
-        # Crear slots disponibles por defecto
+        # Create available slots by default
         current_time = DEFAULT_START
         while current_time < DEFAULT_END:
             next_time = (datetime.combine(date.today(), current_time) + timedelta(hours=SLOT_DURATION)).time()
             if next_time > DEFAULT_END:
                 break
             
-            # Verificar si hay una excepción (bloqueado) en este slot
+            # Check if this slot is blocked by a schedule exception
             is_blocked = ScheduleException.objects.filter(
                 doctor=request.user,
                 date=current,
@@ -246,7 +250,7 @@ def calendar_events(request):
         
         current += timedelta(days=1)
 
-    # Obtener excepciones (bloques solamente, ya que disponible está por defecto)
+    # Get blocked exceptions only (extra availability is handled separately)
     exceptions = ScheduleException.objects.filter(
         doctor=request.user,
         date__range=(range_start, range_end),
@@ -298,3 +302,37 @@ def calendar_events(request):
         })
 
     return JsonResponse(events, safe=False)
+
+
+@login_required
+def profile_update(request):
+    """Allow any authenticated user to update their personal information."""
+    user = request.user
+
+    if user.role == "DOCTOR":
+        FormClass = DoctorProfileUpdateForm
+    else:
+        FormClass = PatientProfileUpdateForm
+
+    if request.method == "POST":
+        form = FormClass(request.POST, request.FILES, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Your profile has been updated successfully.")
+            return redirect("profile_update")
+    else:
+        form = FormClass(instance=user)
+
+    return render(request, "accounts/profile_update.html", {"form": form})
+
+
+@login_required
+@require_http_methods(["POST"])
+def profile_delete(request):
+    """Allow any authenticated user to permanently delete their account."""
+    user = request.user
+    from django.contrib.auth import logout
+    logout(request)
+    user.delete()
+    messages.success(request, "Your account has been permanently deleted.")
+    return redirect("login")

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; border-radius: 8px; }
+        .header { background-color: #0D9488; color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center; }
+        .content { background-color: white; padding: 20px; border-radius: 0 0 8px 8px; }
+        .appointment-details { background-color: #f0fdf9; padding: 15px; border-left: 4px solid #0D9488; margin: 15px 0; }
+        .detail-row { margin: 8px 0; }
+        .label { font-weight: bold; color: #555; }
+        .status-badge { display: inline-block; padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 14px; margin: 10px 0; }
+        .badge-confirmed { background-color: #e0f2fe; color: #0284C7; }
+        .badge-completed { background-color: #dcfce7; color: #16a34a; }
+        .badge-cancelled { background-color: #fee2e2; color: #dc2626; }
+        .footer { text-align: center; color: #999; font-size: 12px; margin-top: 20px; border-top: 1px solid #ddd; padding-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Appointment Update — Doctor Notification</h1>
+        </div>
+        <div class="content">
+            <p>Hello <strong>Dr. {{ doctor.first_name }} {{ doctor.last_name }}</strong>,</p>
+
+            <p>An appointment in your schedule has been updated:</p>
+
+            {% if new_status == 'CONFIRMED' %}
+                <span class="status-badge badge-confirmed">✔ Confirmed by You</span>
+                <p>You have <strong>confirmed</strong> the appointment with patient {{ patient.first_name }} {{ patient.last_name }}.</p>
+            {% elif new_status == 'COMPLETED' %}
+                <span class="status-badge badge-completed">✓ Marked Completed</span>
+                <p>The appointment with {{ patient.first_name }} {{ patient.last_name }} has been marked as <strong>completed</strong>.</p>
+            {% elif new_status == 'CANCELLED' %}
+                <span class="status-badge badge-cancelled">✕ Cancelled</span>
+                <p>The appointment with {{ patient.first_name }} {{ patient.last_name }} has been <strong>cancelled</strong>.</p>
+            {% endif %}
+
+            <div class="appointment-details">
+                <div class="detail-row">
+                    <span class="label">Date:</span> {{ date|date:"F d, Y" }}
+                </div>
+                <div class="detail-row">
+                    <span class="label">Time:</span> {{ start_time|time:"H:i" }} – {{ end_time|time:"H:i" }}
+                </div>
+                <div class="detail-row">
+                    <span class="label">Patient:</span> {{ patient.first_name }} {{ patient.last_name }}
+                </div>
+                <div class="detail-row">
+                    <span class="label">Patient Email:</span> {{ patient.email }}
+                </div>
+                {% if reason %}
+                <div class="detail-row">
+                    <span class="label">Reason:</span> {{ reason }}
+                </div>
+                {% endif %}
+            </div>
+
+            <p>Best regards,<br/>
+            <strong>Medical Appointment Manager</strong></p>
+
+            <div class="footer">
+                <p>This is an automated email. Please do not reply to this message.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

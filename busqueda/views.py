@@ -26,7 +26,7 @@ def disponibilidad(request, doctor_id):
     })
 def disponibilidad_ajax(request, doctor_id):
     doctor = get_object_or_404(Doctor, id=doctor_id)
-    # Usamos los campos correctos: fecha y hora
+    # Use the correct fields: date and time
     horarios = Disponibilidad.objects.filter(doctor=doctor).order_by('fecha', 'hora')
     return render(request, "busqueda/tabla_disponibilidad.html", {
         "doctor": doctor,

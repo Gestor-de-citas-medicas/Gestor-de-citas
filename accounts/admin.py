@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-# Línea 3 — actualizar el import
+# Updated import
 from .models import User, DoctorSchedule, ScheduleException, DoctorProfile
 
 # Al final del archivo — agregar esto
@@ -28,7 +28,7 @@ class DoctorScheduleAdmin(admin.ModelAdmin):
     list_editable = ("is_active",)          # activar/pausar directo desde la lista
     ordering      = ("doctor", "day_number", "start_time")
 
-    @admin.display(description="Día")
+    @admin.display(description="Day")
     def get_day(self, obj):
         return obj.get_day_number_display()
 

@@ -6,7 +6,7 @@ from django.db.models import Avg, Count
 from datetime import timedelta, time, datetime
 from .models import Appointment, AppointmentReview
 from .forms import AppointmentForm, AppointmentReviewForm
-from .emails import send_appointment_confirmation, send_appointment_cancellation, send_review_request
+from .emails import send_appointment_confirmation, send_appointment_cancellation, send_review_request, send_appointment_status_change
 from accounts.models import ScheduleException, User
 
 
@@ -34,7 +34,7 @@ def appointment_create(request):
         if form.is_valid():
             appointment = form.save(commit=False)
             appointment.patient = request.user
-            # Calcular automáticamente la hora de fin (1 hora después del inicio)
+            # Automatically calculate end time (1 hour after start)
             from datetime import time, datetime
             start = appointment.start_time
             start_dt = datetime.combine(appointment.date, start)
@@ -42,12 +42,12 @@ def appointment_create(request):
             appointment.end_time = end_dt.time()
             appointment.save()
             
-            # Enviar confirmación de cita
+            # Send appointment confirmation
             try:
                 send_appointment_confirmation(appointment)
-                messages.success(request, "¡Cita reservada exitosamente! Se han enviado confirmaciones por correo.")
+                messages.success(request, "Appointment booked successfully! Confirmation emails have been sent.")
             except Exception as e:
-                messages.warning(request, f"Cita reservada pero hubo un error al enviar el email: {str(e)}")
+                messages.warning(request, f"Appointment booked, but there was an error sending the confirmation email: {str(e)}")
             
             return redirect("appointment_list")
     else:
@@ -98,7 +98,11 @@ def appointment_confirm(request, pk):
     
     appointment.status = Appointment.Status.CONFIRMED
     appointment.save()
-    messages.success(request, "Appointment confirmed successfully.")
+    try:
+        send_appointment_status_change(appointment, "CONFIRMED")
+        messages.success(request, "Appointment confirmed. Notification emails have been sent.")
+    except Exception:
+        messages.success(request, "Appointment confirmed successfully.")
     
     return redirect("appointment_list")
 
@@ -120,10 +124,14 @@ def appointment_complete(request, pk):
     appointment.status = Appointment.Status.COMPLETED
     appointment.save()
     
-    # Send review request email to patient
+    # Send status change notification and review request
+    try:
+        send_appointment_status_change(appointment, "COMPLETED")
+    except Exception:
+        pass
     try:
         send_review_request(appointment)
-        messages.success(request, "Appointment completed. A review request has been sent to the patient.")
+        messages.success(request, "Appointment completed. Notification and review request emails have been sent.")
     except Exception as e:
         messages.success(request, "Appointment marked as completed.")
     
@@ -133,8 +141,8 @@ def appointment_complete(request, pk):
 @login_required
 def available_slots_api(request):
     """
-    API que retorna los slots disponibles para un doctor y fecha específicos.
-    Parámetros: doctor_id (int), date (YYYY-MM-DD)
+    API that returns available slots for a specific doctor and date.
+    Parameters: doctor_id (int), date (YYYY-MM-DD)
     """
     doctor_id = request.GET.get("doctor_id")
     date_str = request.GET.get("date")
@@ -148,7 +156,7 @@ def available_slots_api(request):
     except:
         return JsonResponse({"error": "Invalid parameters"}, status=400)
     
-    # Franjas horarias de 1 hora: 8:00 - 18:00
+    # Hourly time slots: 8:00 AM - 6:00 PM
     DEFAULT_START_HOUR = 8
     DEFAULT_END_HOUR = 18
     SLOT_DURATION = 1  # horas
@@ -160,7 +168,7 @@ def available_slots_api(request):
         slot_start = time(hour, 0)
         slot_end = time(hour + SLOT_DURATION, 0)
         
-        # Verificar si está bloqueado por excepción
+        # Check if slot is blocked by a schedule exception
         is_blocked = ScheduleException.objects.filter(
             doctor=doctor,
             date=appointment_date,
@@ -169,7 +177,7 @@ def available_slots_api(request):
             end_time__gt=slot_start
         ).exists()
         
-        # Verificar si hay una cita ocupando este slot
+        # Check if slot is already booked
         is_booked = Appointment.objects.filter(
             doctor=doctor,
             date=appointment_date,

@@ -171,6 +171,78 @@ def send_appointment_cancellation(appointment):
         raise
 
 
+def send_appointment_status_change(appointment, new_status):
+    """
+    Send a notification to both patient and doctor when an appointment's
+    status changes (CONFIRMED, COMPLETED, or CANCELLED via doctor action).
+    """
+    try:
+        print(f"\n{'='*60}")
+        print(f"SENDING STATUS CHANGE ({new_status}) - Appointment #{appointment.pk}")
+        print(f"{'='*60}")
+
+        subject_map = {
+            "CONFIRMED": f"Appointment Confirmed – {appointment.date}",
+            "COMPLETED": f"Appointment Completed – {appointment.date}",
+            "CANCELLED": f"Appointment Cancelled – {appointment.date}",
+        }
+        subject = subject_map.get(new_status, f"Appointment Update – {appointment.date}")
+
+        context = {
+            "appointment": appointment,
+            "patient": appointment.patient,
+            "doctor": appointment.doctor,
+            "date": appointment.date,
+            "start_time": appointment.start_time,
+            "end_time": appointment.end_time,
+            "reason": appointment.reason,
+            "new_status": new_status,
+        }
+
+        # Email to patient
+        if appointment.patient.email:
+            patient_message = render_to_string(
+                "appointments/emails/patient_status_change.html", context
+            )
+            send_mail(
+                subject=subject,
+                message=f"Your appointment on {appointment.date} has been updated to: {new_status}",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[appointment.patient.email],
+                html_message=patient_message,
+                fail_silently=False,
+            )
+            print(f"✓ Status change email sent to patient: {appointment.patient.email}")
+            logger.info(f"Status change email ({new_status}) sent to patient: {appointment.patient.email}")
+
+        # Email to doctor
+        if appointment.doctor.email:
+            doctor_message = render_to_string(
+                "appointments/emails/doctor_status_change.html", context
+            )
+            send_mail(
+                subject=f"[Doctor] {subject}",
+                message=f"Appointment with {appointment.patient.first_name} on {appointment.date} updated to: {new_status}",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[appointment.doctor.email],
+                html_message=doctor_message,
+                fail_silently=False,
+            )
+            print(f"✓ Status change email sent to doctor: {appointment.doctor.email}")
+            logger.info(f"Status change email ({new_status}) sent to doctor: {appointment.doctor.email}")
+
+        print(f"\n{'='*60}")
+        print(f"✓ STATUS CHANGE NOTIFICATION SENT ({new_status})")
+        print(f"{'='*60}\n")
+
+    except Exception as e:
+        print(f"\n{'='*60}")
+        print(f"❌ ERROR SENDING STATUS CHANGE EMAIL: {str(e)}")
+        print(f"{'='*60}\n")
+        logger.error(f"Error sending status change email: {str(e)}", exc_info=True)
+        raise
+
+
 def send_review_request(appointment):
     """
     Send a review request email to the patient after appointment is completed.

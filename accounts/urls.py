@@ -16,6 +16,8 @@ from .views import (
     exception_update,
     exception_delete,
     calendar_events,
+    profile_update,
+    profile_delete,
 )
 
 urlpatterns = [
@@ -40,4 +42,7 @@ urlpatterns = [
     path("doctor/exception/<int:pk>/delete/", exception_delete, name="exception_delete"),
 
     path("doctor/calendar/events/", calendar_events, name="calendar_events"),
+
+    path("profile/edit/", profile_update, name="profile_update"),
+    path("profile/delete/", profile_delete, name="profile_delete"),
 ]

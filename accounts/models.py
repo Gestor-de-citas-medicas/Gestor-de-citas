@@ -6,8 +6,8 @@ from django.core.exceptions import ValidationError
 class User(AbstractUser):
     class Roles(models.TextChoices):
         PATIENT = "PATIENT", "Patient"
-        DOCTOR = "DOCTOR", "Doctor"
-        ADMIN = "ADMIN", "Admin"
+        DOCTOR  = "DOCTOR",  "Doctor"
+        ADMIN   = "ADMIN",   "Admin"
 
     role = models.CharField(
         max_length=20,
@@ -57,7 +57,7 @@ class DoctorSchedule(models.Model):
     def clean(self):
         if self.start_time and self.end_time:
             if self.start_time >= self.end_time:
-                raise ValidationError("La hora de fin debe ser mayor a la hora de inicio.")
+                raise ValidationError("End time must be greater than start time.")
 
         overlapping = DoctorSchedule.objects.filter(
             doctor=self.doctor,
@@ -68,7 +68,7 @@ class DoctorSchedule(models.Model):
         ).exclude(pk=self.pk)
 
         if overlapping.exists():
-            raise ValidationError("Este horario se solapa con uno existente.")
+            raise ValidationError("This schedule overlaps with an existing one.")
 
     def __str__(self):
         status = "✓" if self.is_active else "✗"
@@ -77,8 +77,8 @@ class DoctorSchedule(models.Model):
 
 class ScheduleException(models.Model):
     class ExceptionType(models.TextChoices):
-        BLOCKED   = "BLOCKED",   "Bloqueado"
-        AVAILABLE = "AVAILABLE", "Disponible extra"
+        BLOCKED   = "BLOCKED",   "Blocked"
+        AVAILABLE = "AVAILABLE", "Extra Availability"
 
     doctor = models.ForeignKey(
         User,
@@ -108,7 +108,7 @@ class ScheduleException(models.Model):
     def clean(self):
         if self.start_time and self.end_time:
             if self.start_time >= self.end_time:
-                raise ValidationError("La hora de fin debe ser mayor a la hora de inicio.")
+                raise ValidationError("End time must be greater than start time.")
 
     def __str__(self):
         return f"{self.doctor.username} — {self.date} [{self.type}] {self.start_time}–{self.end_time}"
@@ -117,19 +117,19 @@ class ScheduleException(models.Model):
 class DoctorProfile(models.Model):
 
     class Specialty(models.TextChoices):
-        GENERAL        = "GENERAL",        "Medicina General"
-        PEDIATRICS     = "PEDIATRICS",     "Pediatría"
-        CARDIOLOGY     = "CARDIOLOGY",     "Cardiología"
-        DERMATOLOGY    = "DERMATOLOGY",    "Dermatología"
-        GYNECOLOGY     = "GYNECOLOGY",     "Ginecología"
-        NEUROLOGY      = "NEUROLOGY",      "Neurología"
-        ORTHOPEDICS    = "ORTHOPEDICS",    "Ortopedia"
-        PSYCHIATRY     = "PSYCHIATRY",     "Psiquiatría"
-        OPHTHALMOLOGY  = "OPHTHALMOLOGY",  "Oftalmología"
-        OTOLARYNGOLOGY = "OTOLARYNGOLOGY", "Otorrinolaringología"
-        UROLOGY        = "UROLOGY",        "Urología"
-        ENDOCRINOLOGY  = "ENDOCRINOLOGY",  "Endocrinología"
-        OTHER          = "OTHER",          "Otra"
+        GENERAL        = "GENERAL",        "General Medicine"
+        PEDIATRICS     = "PEDIATRICS",     "Pediatrics"
+        CARDIOLOGY     = "CARDIOLOGY",     "Cardiology"
+        DERMATOLOGY    = "DERMATOLOGY",    "Dermatology"
+        GYNECOLOGY     = "GYNECOLOGY",     "Gynecology"
+        NEUROLOGY      = "NEUROLOGY",      "Neurology"
+        ORTHOPEDICS    = "ORTHOPEDICS",    "Orthopedics"
+        PSYCHIATRY     = "PSYCHIATRY",     "Psychiatry"
+        OPHTHALMOLOGY  = "OPHTHALMOLOGY",  "Ophthalmology"
+        OTOLARYNGOLOGY = "OTOLARYNGOLOGY", "Otolaryngology"
+        UROLOGY        = "UROLOGY",        "Urology"
+        ENDOCRINOLOGY  = "ENDOCRINOLOGY",  "Endocrinology"
+        OTHER          = "OTHER",          "Other"
 
     user = models.OneToOneField(
         User,

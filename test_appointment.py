@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Test Manual: Crea una cita de prueba y envía email
+Manual Test: Creates a test appointment and sends email
 Ejecutar: python test_appointment.py
 """
 import os
@@ -15,56 +15,56 @@ from appointments.emails import send_appointment_confirmation
 from datetime import date, time
 
 print("\n" + "="*70)
-print("TEST MANUAL DE CREACIÓN DE CITA Y ENVÍO DE EMAIL")
+print("MANUAL TEST: APPOINTMENT CREATION AND EMAIL SENDING")
 print("="*70)
 
 # 1. Obtener un paciente y un doctor
-print("\n1️⃣ Buscando paciente y doctor...")
+print("\n1️⃣ Looking up patient and doctor...")
 patients = User.objects.filter(role="PATIENT")
 doctors = User.objects.filter(role="DOCTOR")
 
 if not patients:
-    print("❌ No hay pacientes registrados")
+    print("❌ No patients registered in the database")
     exit(1)
 
 if not doctors:
-    print("❌ No hay doctores registrados")
+    print("❌ No doctors registered in the database")
     exit(1)
 
 patient = patients.first()
 doctor = doctors.first()
 
-print(f"✓ Paciente: {patient.username} ({patient.email})")
+print(f"✓ Patient: {patient.username} ({patient.email})")
 print(f"✓ Doctor: {doctor.username} ({doctor.email})")
 
-# 2. Crear una cita de prueba
-print("\n2️⃣ Creando cita de prueba...")
+# 2. Create a test appointment
+print("\n2️⃣ Creating test appointment...")
 appointment = Appointment.objects.create(
     patient=patient,
     doctor=doctor,
     date=date(2026, 4, 20),
     start_time=time(10, 0),
     end_time=time(11, 0),
-    reason="Test de cita",
+    reason="Test appointment",
     status=Appointment.Status.PENDING
 )
-print(f"✓ Cita creada con ID: #{appointment.pk}")
+print(f"✓ Appointment created with ID: #{appointment.pk}")
 
 # 3. Intentar enviar el email
-print("\n3️⃣ Intentando enviar email de confirmación...\n")
+print("\n3️⃣ Sending confirmation email...\n")
 try:
     send_appointment_confirmation(appointment)
-    print("\n✅ EMAIL ENVIADO EXITOSAMENTE")
+    print("\n✅ EMAIL SENT SUCCESSFULLY")
 except Exception as e:
-    print(f"\n❌ ERROR AL ENVIAR EMAIL: {str(e)}")
+    print(f"\n❌ ERROR WHILE SENDING EMAIL: {str(e)}")
     import traceback
     traceback.print_exc()
 
 # 4. Limpiar (opcional)
-print("\n4️⃣ Limpiando datos de prueba...")
+print("\n4️⃣ Cleaning up: deleting test appointment...")
 appointment.delete()
-print("✓ Cita de prueba eliminada")
+print("✓ Test appointment deleted")
 
 print("\n" + "="*70)
-print("FIN DEL TEST")
+print("TEST ENDED")
 print("="*70 + "\n")

@@ -83,7 +83,7 @@
     .user-name { font-weight: 500; font-size: 0.9rem; margin-bottom: 2px;}
     .user-role { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;}
 
-    /* ── Autenticación de Header ── */
+    /* ── Header Authentication ── */
     .btn-logout {
       background: transparent;
       border: 1px solid var(--border);
@@ -108,7 +108,7 @@
       overflow: hidden;
     }
 
-    /* Sidebar genérico */
+    /* Generic Sidebar */
     aside {
       width: 260px;
       background: var(--surface);
@@ -221,7 +221,7 @@
     .med-table tr:last-child td { border-bottom: none; }
     .med-table tr:hover td { background: var(--surface2); }
 
-    /* Form Inputs genéricos */
+    /* Generic Form Inputs */
     .input-control {
       background: var(--surface2);
       border: 1px solid var(--border);
@@ -287,10 +287,13 @@
     <div class="nav-menu">
       {% if user.role == 'DOCTOR' %}
         <a href="{% url 'doctor_dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'doctor_dashboard' %}active{% endif %}">
-          <i class="fa-regular fa-calendar-days"></i> Mi Calendario
+          <i class="fa-regular fa-calendar-days"></i> My Calendar
         </a>
         <a href="{% url 'appointment_list' %}" class="nav-item {% if request.resolver_match.url_name == 'appointment_list' %}active{% endif %}">
           <i class="fa-solid fa-user-doctor"></i> My Appointments
+        </a>
+        <a href="{% url 'profile_update' %}" class="nav-item {% if request.resolver_match.url_name == 'profile_update' %}active{% endif %}">
+          <i class="fa-solid fa-user-pen"></i> Edit Profile
         </a>
       {% elif user.role == 'PATIENT' %}
         <a href="{% url 'buscar_doctor' %}" class="nav-item {% if request.resolver_match.url_name == 'buscar_doctor' or request.resolver_match.url_name == 'disponibilidad' %}active{% endif %}">
@@ -298,6 +301,9 @@
         </a>
         <a href="{% url 'appointment_list' %}" class="nav-item {% if request.resolver_match.url_name == 'appointment_list' %}active{% endif %}">
           <i class="fa-regular fa-address-book"></i> My Appointments
+        </a>
+        <a href="{% url 'profile_update' %}" class="nav-item {% if request.resolver_match.url_name == 'profile_update' %}active{% endif %}">
+          <i class="fa-solid fa-user-pen"></i> Edit Profile
         </a>
       {% endif %}
     </div>

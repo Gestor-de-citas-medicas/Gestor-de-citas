@@ -29,7 +29,7 @@ class AppointmentForm(forms.ModelForm):
 
     def clean(self):
         cleaned = super().clean()
-        # La hora de fin se calculará automáticamente (1 hora después del inicio)
+        # End time is calculated automatically (1 hour after start)
         return cleaned
 
 
