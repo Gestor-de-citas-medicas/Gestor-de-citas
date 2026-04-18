@@ -3,590 +3,127 @@
 {% block title %}Doctor Dashboard — Calendar{% endblock %}
 
 {% block extra_head %}
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-{% endblock %}
-
-{% block extra_css %}
-    /* Sidebar specific */
-    .sidebar-section {
-      padding: 0 14px;
-      margin-bottom: 24px;
-    }
-    .sidebar-section h3 {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: var(--text-muted);
-      margin-bottom: 12px;
-    }
-
-    .legend-item {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 0.82rem; margin-bottom: 7px; cursor: default;
-    }
-    .legend-dot {
-      width: 10px; height: 10px; border-radius: 3px;
-      flex-shrink: 0;
-    }
-    .dot-available  { background: var(--accent); }
-    .dot-appointment { background: #a855f7; }
-    .dot-blocked    { background: var(--danger); }
-
-    .stats-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-    }
-    .stat-card {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 10px;
-      text-align: center;
-    }
-    .stat-num {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.5rem;
-      color: var(--accent);
-    }
-    .stat-lbl { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
-
-    .btn-add {
-      width: calc(100% - 28px);
-      margin: 14px;
-      padding: 12px;
-      background: linear-gradient(135deg, var(--accent), #0ea5e9);
-      border: none; border-radius: 10px;
-      color: #0d1117; font-weight: 600; font-size: 0.9rem;
-      cursor: pointer; transition: opacity .2s;
-    }
-    .btn-add:hover { opacity: .85; }
-
-    /* Main Header specific */
-    .view-actions-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 22px;
-    }
-    .view-actions-header h1 {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.8rem; font-weight: 400;
-    }
-    .view-tabs {
-      display: flex; gap: 6px;
-    }
-    .view-tab {
-      padding: 7px 16px; border-radius: 8px;
-      border: 1px solid var(--border);
-      background: transparent; color: var(--text-muted);
-      font-size: 0.82rem; cursor: pointer; transition: all .15s;
-      font-family: 'DM Sans', sans-serif;
-    }
-    .view-tab.active {
-      background: var(--accent); color: #0d1117;
-      border-color: var(--accent); font-weight: 600;
-    }
-    .view-tab:hover:not(.active) { border-color: var(--accent); color: var(--text); }
-
-    /* Calendar overrides */
-    #calendar {
-      background: var(--surface);
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      padding: 20px;
-    }
-
-    .fc {
-      --fc-border-color: var(--border);
-      --fc-today-bg-color: rgba(45,212,191,0.05);
-      --fc-page-bg-color: transparent;
-      --fc-neutral-bg-color: var(--surface2);
-      --fc-list-event-hover-bg-color: var(--surface2);
-      color: var(--text);
-    }
-
-    .fc-toolbar-title {
-      font-family: 'DM Serif Display', serif !important;
-      font-size: 1.3rem !important;
-      color: var(--text) !important;
-    }
-
-    .fc .fc-button {
-      background: var(--surface2) !important;
-      border: 1px solid var(--border) !important;
-      color: var(--text) !important;
-      font-family: 'DM Sans', sans-serif !important;
-      font-size: 0.8rem !important;
-      border-radius: 8px !important;
-      box-shadow: none !important;
-      transition: border-color .15s !important;
-    }
-    .fc .fc-button:hover { border-color: var(--accent) !important; }
-    .fc .fc-button-active, .fc .fc-button-primary:not(:disabled).fc-button-active {
-      background: var(--accent) !important;
-      border-color: var(--accent) !important;
-      color: #0d1117 !important;
-    }
-
-    .fc-col-header-cell {
-      background: var(--surface2) !important;
-      font-size: 0.78rem !important; text-transform: uppercase;
-      letter-spacing: 1px; font-weight: 500 !important;
-    }
-    .fc-timegrid-slot { height: 40px !important; }
-    .fc-timegrid-slot-label { font-size: 0.75rem; color: var(--text-muted) !important; }
-
-    /* Event styles */
-    .fc-event {
-      border-radius: 6px !important;
-      border: none !important;
-      font-size: 0.78rem !important;
-      cursor: pointer !important;
-      padding: 3px 6px !important;
-    }
-    .event-available {
-      background: var(--available) !important;
-      border-left: 3px solid var(--available-border) !important;
-      color: var(--accent) !important;
-    }
-    .event-pending {
-      background: rgba(234,179,8,0.18) !important;
-      border-left: 3px solid #eab308 !important;
-      color: #eab308 !important;
-    }
-    .event-appointment {
-      background: rgba(168,85,247,0.18) !important;
-      border-left: 3px solid #a855f7 !important;
-      color: #a855f7 !important;
-    }
-    .event-completed {
-      background: rgba(34,197,94,0.18) !important;
-      border-left: 3px solid #22c55e !important;
-      color: #22c55e !important;
-    }
-    .event-booked {
-      background: var(--booked) !important;
-      border-left: 3px solid var(--booked-border) !important;
-      color: var(--accent2) !important;
-    }
-    .event-blocked {
-      background: var(--blocked) !important;
-      border-left: 3px solid var(--blocked-border) !important;
-      color: var(--danger) !important;
-    }
-
-    /* ── Modal ── */
-    .modal-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(4px);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 9999;
-      opacity: 0; pointer-events: none;
-      transition: opacity .2s;
-    }
-    .modal-overlay.open { opacity: 1; pointer-events: all; }
-
-    .modal {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 28px 30px;
-      width: 420px;
-      transform: translateY(20px);
-      transition: transform .2s;
-    }
-    .modal-overlay.open .modal { transform: translateY(0); }
-
-    .modal h2 {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.3rem; font-weight: 400;
-      margin-bottom: 20px;
-    }
-
-    .form-row {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
-      margin-bottom: 14px;
-    }
-    .form-group {
-      display: flex; flex-direction: column; gap: 6px;
-      margin-bottom: 14px;
-    }
-
-    .type-selector {
-      display: flex; gap: 8px;
-    }
-    .type-btn {
-      flex: 1; padding: 9px 6px;
-      border-radius: 8px; border: 1px solid var(--border);
-      background: transparent; color: var(--text-muted);
-      font-size: 0.8rem; cursor: pointer; transition: all .15s;
-      font-family: 'DM Sans', sans-serif;
-    }
-    .type-btn.sel-available { background: var(--available); border-color: var(--available-border); color: var(--accent); }
-    .type-btn.sel-blocked   { background: var(--blocked);   border-color: var(--blocked-border);   color: var(--danger); }
-
-    .modal-actions {
-      display: flex; gap: 10px; margin-top: 20px;
-    }
-    .btn-cancel {
-      flex: 1; padding: 11px;
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 10px; color: var(--text-muted);
-      font-size: 0.88rem; cursor: pointer; font-family: 'DM Sans', sans-serif;
-      transition: border-color .15s;
-    }
-    .btn-cancel:hover { border-color: var(--text-muted); }
-    .btn-save {
-      flex: 2; padding: 11px;
-      background: linear-gradient(135deg, var(--accent), #0ea5e9);
-      border: none; border-radius: 10px;
-      color: #0d1117; font-weight: 600; font-size: 0.88rem;
-      cursor: pointer; font-family: 'DM Sans', sans-serif;
-      transition: opacity .2s;
-    }
-    .btn-save:hover { opacity: .85; }
-    .btn-delete {
-      padding: 11px 18px;
-      background: rgba(248,113,113,0.12);
-      border: 1px solid var(--blocked-border);
-      border-radius: 10px; color: var(--danger);
-      font-size: 0.88rem; cursor: pointer; font-family: 'DM Sans', sans-serif;
-      transition: background .15s;
-    }
-    .btn-delete:hover { background: rgba(248,113,113,0.22); }
-
-    /* Toast */
-    .toast {
-      position: fixed; bottom: 28px; right: 28px;
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 10px; padding: 12px 20px;
-      font-size: 0.88rem; z-index: 10000;
-      transform: translateY(60px); opacity: 0;
-      transition: all .3s;
-    }
-    .toast.show { transform: translateY(0); opacity: 1; }
-    .toast.success { border-left: 3px solid var(--accent); }
-    .toast.error   { border-left: 3px solid var(--danger); }
-{% endblock %}
-
-{% block sidebar_extra %}
-  <button class="btn-add" onclick="openModal()">+ New Availability</button>
-
-  <div class="sidebar-section">
-    <h3>This Week</h3>
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-num" id="stat-available">0</div>
-        <div class="stat-lbl">Available</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" style="color:var(--accent2)" id="stat-booked">0</div>
-        <div class="stat-lbl">Reserved</div>
-      </div>
-      <div class="stat-card" style="grid-column:span 2">
-        <div class="stat-num" style="color:var(--danger)" id="stat-blocked">0</div>
-        <div class="stat-lbl">Blocked</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="sidebar-section">
-    <h3>Legend</h3>
-    <div class="legend-item"><div class="legend-dot dot-available"></div> Available</div>
-    <div class="legend-item"><div class="legend-dot dot-appointment"></div> Reserved</div>
-    <div class="legend-item"><div class="legend-dot dot-blocked"></div> Blocked</div>
-  </div>
-
-  <div class="sidebar-section" style="margin-top:auto">
-    <h3>Instructions</h3>
-    <p style="font-size:0.78rem;color:var(--text-muted);line-height:1.5">
-      Click on a calendar slot to add availability.<br><br>
-      Click on an existing event to edit or delete it.<br><br>
-      <strong style="color:var(--danger)">Blocked</strong> slots will not be visible to patients.
-    </p>
-  </div>
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 {% endblock %}
 
 {% block content %}
-  <div class="view-actions-header">
-    <h1>Doctor's Calendar</h1>
-    <div class="view-tabs">
-      <button class="view-tab" onclick="switchView('timeGridWeek', this)">Week</button>
-      <button class="view-tab" onclick="switchView('timeGridDay', this)">Day</button>
-      <button class="view-tab" onclick="switchView('dayGridMonth', this)">Month</button>
+<div class="view-actions-header">
+  <h1>Doctor's Calendar</h1>
+</div>
+
+<div id="calendar"></div>
+
+<!-- 🔥 MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+
+    {% csrf_token %}
+
+    <h2>New Availability</h2>
+
+    <input type="date" id="input-date" class="input-control">
+    <input type="time" id="input-start" class="input-control">
+    <input type="time" id="input-end" class="input-control">
+
+    <div style="margin-top: 15px;">
+      <button class="btn-primary" onclick="saveEvent()">Save</button>
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
     </div>
+
   </div>
+</div>
 
-  <div id="calendar"></div>
+{% endblock %}
 
-  <!-- Modal -->
-  <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
-    <div class="modal">
-      <h2 id="modal-title">New Availability</h2>
-
-      <div class="form-group">
-        <label class="form-label">Block Type</label>
-        <div class="type-selector">
-          <button class="type-btn sel-available" id="btn-available" onclick="selectType('available')">✓ Available</button>
-          <button class="type-btn" id="btn-blocked" onclick="selectType('blocked')">✗ Block</button>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">Date</label>
-          <input type="date" class="input-control" id="input-date">
-        </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">Recurrence</label>
-          <select class="input-control" id="input-recurrence">
-            <option value="once">Once Only</option>
-            <option value="weekly">Every Week</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">Start Time</label>
-          <input type="time" class="input-control" id="input-start" value="08:00">
-        </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">End Time</label>
-          <input type="time" class="input-control" id="input-end" value="09:00">
-        </div>
-      </div>
-
-      <div class="form-group" style="margin-top:14px">
-        <label class="form-label">Notes (optional)</label>
-        <input type="text" class="input-control" id="input-notes" placeholder="E.g: Emergency only">
-      </div>
-
-      <div class="modal-actions">
-        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-        <button class="btn-delete" id="btn-delete" onclick="deleteEvent()" style="display:none">Delete</button>
-        <button class="btn-save" onclick="saveEvent()">Save</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Toast -->
-  <div class="toast" id="toast"></div>
+{% block sidebar_extra %}
+<button class="btn-add" onclick="openModal()">+ New Availability</button>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-  let calendar;
-  let editingEventId = null;
-  let selectedType = 'available';
-  let eventCounter = 0;
-  let events = [];
 
-  function nextDate(daysFromToday, time) {
-    const d = new Date();
-    d.setDate(d.getDate() + daysFromToday);
-    return d.toISOString().slice(0, 10) + 'T' + time;
-  }
+let calendar;
 
-  // Load events from API
-  async function loadEvents() {
-    try {
-      const response = await fetch('/accounts/doctor/calendar/events/');
-      events = await response.json();
-      if (calendar) {
-        calendar.refetchEvents();
-      }
-    } catch (error) {
-      console.error('Error loading events:', error);
+document.addEventListener('DOMContentLoaded', function () {
+
+  // 🔥 ocultar modal al cargar
+  document.getElementById('modalOverlay').style.display = "none";
+
+  calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+    initialView: 'timeGridWeek',
+    selectable: true,
+
+    // ✅ FIX RUTA
+    events: function(info, successCallback, failureCallback) {
+      fetch('/doctor/calendar/events/')
+        .then(res => res.json())
+        .then(data => successCallback(data))
+        .catch(err => failureCallback(err));
+    },
+
+    select: function(info) {
+      document.getElementById("input-date").value = info.startStr.slice(0,10);
+      document.getElementById("input-start").value = info.startStr.slice(11,16);
+      document.getElementById("input-end").value = info.endStr.slice(11,16);
+      openModal();
     }
-  }
-
-  document.addEventListener('DOMContentLoaded', function () {
-    calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
-      initialView: 'timeGridWeek',
-      locale: 'en',
-      firstDay: 1,
-      slotMinTime: '06:00:00',
-      slotMaxTime: '21:00:00',
-      allDaySlot: false,
-      headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: ''
-      },
-      events: function(info, successCallback, failureCallback) {
-        fetch('/accounts/doctor/calendar/events/')
-          .then(r => r.json())
-          .then(data => {
-            events = data;
-            successCallback(data);
-          })
-          .catch(err => {
-            console.error('Error:', err);
-            failureCallback(err);
-          });
-      },
-      selectable: true,
-      select: function (info) {
-        openModal(null, info.startStr, info.endStr);
-      },
-      eventClick: function (info) {
-        const eventType = info.event.extendedProps?.type || info.event._def.extendedProps?.type;
-        if (eventType === 'appointment') return;
-        const ev = events.find(e => e.id == info.event.id);
-        if (!ev) return;
-        openModal(ev);
-      },
-      eventContent: function (arg) {
-        const props = arg.event.extendedProps || {};
-        const type = props.type || 'available';
-        const patientName = props.patientName || '';
-        const reason = props.reason || '';
-        const icons = { available: '🟢', appointment: '🟣', pending: '🟡', completed: '🟢', blocked: '🔴' };
-        const labels = {
-          available: 'Available',
-          appointment: patientName ? `Reserved by ${patientName.split(' ')[0]}` : 'Reserved',
-          pending: 'Pending',
-          completed: 'Completed',
-          blocked: 'Blocked'
-        };
-
-        return {
-          html: `<div style="padding:2px 4px;line-height:1.3">
-            <div style="font-weight:600;font-size:0.78rem">${icons[type] || '•'} ${labels[type] || arg.event.title}</div>
-            ${reason ? `<div style="font-size:0.7rem;opacity:.7">${reason}</div>` : ''}
-          </div>`
-        };
-      },
-      datesSet: updateStats
-    });
-    calendar.render();
-    loadEvents();
-    updateStats();
   });
 
-  function switchView(view, btn) {
-    calendar.changeView(view);
-    document.querySelectorAll('.view-tab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+  calendar.render();
+});
+
+function openModal() {
+  document.getElementById('modalOverlay').style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').style.display = "none";
+}
+
+function saveEvent() {
+
+  const date  = document.getElementById('input-date').value;
+  const start = document.getElementById('input-start').value;
+  const end   = document.getElementById('input-end').value;
+
+  if (!date || !start || !end) {
+    alert("Complete all fields");
+    return;
   }
 
-  function updateStats() {
-    const range = calendar.currentData.dateProfile.activeRange;
-    const inRange = events.filter(e => {
-      const s = new Date(e.start);
-      return s >= range.start && s < range.end;
-    });
-    document.getElementById('stat-available').textContent = inRange.filter(e => e.type === 'available').length;
-    document.getElementById('stat-booked').textContent    = inRange.filter(e => e.type === 'appointment').length;
-    document.getElementById('stat-blocked').textContent   = inRange.filter(e => e.type === 'blocked').length;
+  if (start >= end) {
+    alert("End time must be greater than start time");
+    return;
   }
 
-  function openModal(ev, startStr, endStr) {
-    editingEventId = ev ? ev.id : null;
-    selectedType = ev ? ev.type : 'available';
-    updateTypeButtons();
+  const dayNumber = new Date(date).getDay();
 
-    document.getElementById('modal-title').textContent = ev ? 'Edit Block' : 'New Availability';
-    document.getElementById('btn-delete').style.display = ev ? 'block' : 'none';
-
-    const today = new Date().toISOString().slice(0, 10);
-    if (ev) {
-      document.getElementById('input-date').value = ev.start.slice(0, 10);
-      document.getElementById('input-start').value = ev.start.slice(11, 16);
-      document.getElementById('input-end').value = ev.end.slice(11, 16);
-      document.getElementById('input-notes').value = ev.notes || '';
-    } else if (startStr) {
-      document.getElementById('input-date').value = startStr.slice(0, 10);
-      document.getElementById('input-start').value = startStr.slice(11, 16) || '08:00';
-      document.getElementById('input-end').value = endStr ? endStr.slice(11, 16) : '09:00';
-      document.getElementById('input-notes').value = '';
-    } else {
-      document.getElementById('input-date').value = today;
-      document.getElementById('input-start').value = '08:00';
-      document.getElementById('input-end').value = '09:00';
-      document.getElementById('input-notes').value = '';
-    }
-
-    document.getElementById('modalOverlay').classList.add('open');
-  }
-
-  function closeModal() {
-    document.getElementById('modalOverlay').classList.remove('open');
-    editingEventId = null;
-  }
-
-  function closeModalOutside(e) {
-    if (e.target === document.getElementById('modalOverlay')) closeModal();
-  }
-
-  function selectType(type) {
-    selectedType = type;
-    updateTypeButtons();
-  }
-
-  function updateTypeButtons() {
-    document.getElementById('btn-available').className = 'type-btn' + (selectedType === 'available' ? ' sel-available' : '');
-    document.getElementById('btn-blocked').className   = 'type-btn' + (selectedType === 'blocked'   ? ' sel-blocked'   : '');
-  }
-
-  function saveEvent() {
-    const date  = document.getElementById('input-date').value;
-    const start = document.getElementById('input-start').value;
-    const end   = document.getElementById('input-end').value;
-    const notes = document.getElementById('input-notes').value;
-
-    if (!date || !start || !end) { showToast('Complete all fields', 'error'); return; }
-    if (start >= end) { showToast('End time must be greater than start time', 'error'); return; }
-
-    const classMap = { available: 'event-available', blocked: 'event-blocked' };
-    const titleMap = { available: 'Available', blocked: 'Blocked' };
-
-    if (editingEventId) {
-      const idx = events.findIndex(e => e.id === editingEventId);
-      events[idx] = {
-        ...events[idx],
-        start: `${date}T${start}`, end: `${date}T${end}`,
-        type: selectedType, className: classMap[selectedType],
-        title: titleMap[selectedType], notes
-      };
-      const ev = calendar.getEventById(editingEventId);
-      ev.setProp('start', `${date}T${start}`);
-      ev.setEnd(`${date}T${end}`);
-      ev.setProp('classNames', [classMap[selectedType]]);
+  // ✅ FIX RUTA
+  fetch("/doctor/schedule/create/", {
+    method: "POST",
+    headers: {
+      "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: `day_number=${dayNumber}&start_time=${start}&end_time=${end}`
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.ok) {
+      alert("Saved ✅");
       calendar.refetchEvents();
-      showToast('Block updated ✓', 'success');
+      closeModal();
     } else {
-      const id = ++eventCounter;
-      const newEv = {
-        id, title: titleMap[selectedType],
-        start: `${date}T${start}`, end: `${date}T${end}`,
-        type: selectedType, classNames: [classMap[selectedType]], notes
-      };
-      events.push(newEv);
-      calendar.addEvent(newEv);
-      showToast('Availability saved ✓', 'success');
+      alert("Error backend");
+      console.log(data);
     }
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Server error real");
+  });
+}
 
-    updateStats();
-    closeModal();
-  }
-
-  function deleteEvent() {
-    if (!editingEventId) return;
-    const idx = events.findIndex(e => e.id === editingEventId);
-    events.splice(idx, 1);
-    const ev = calendar.getEventById(editingEventId);
-    if (ev) ev.remove();
-    updateStats();
-    closeModal();
-    showToast('Bloque eliminado', 'success');
-  }
-
-  function showToast(msg, type = 'success') {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = `toast ${type} show`;
-    setTimeout(() => t.classList.remove('show'), 3000);
-  }
 </script>
 {% endblock %}
