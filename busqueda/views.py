@@ -1,34 +1,77 @@
-from django.http import HttpResponse
-from django.shortcuts import render, get_object_or_404
-from .models import Doctor, Disponibilidad
+from django.shortcuts import render
+from django.db.models import Q
+from django.http import JsonResponse
+
+from datetime import date, timedelta, datetime
+
+from accounts.models import DoctorProfile, DoctorSchedule
 
 
+# 🔍 BÚSQUEDA DE DOCTORES
+def buscar_doctores(request):
+    query = request.GET.get('especialidad', '')
+    doctores = DoctorProfile.objects.select_related('user')
 
-def buscar_doctor(request):
-    especialidad = request.GET.get("especialidad")
-    doctores = Doctor.objects.all()
+    if query:
+        palabras = query.split()
 
-    if especialidad:
-        doctores = doctores.filter(especialidad__icontains=especialidad)
+        filtros = Q()
+        for palabra in palabras:
+            filtros |= Q(full_name__icontains=palabra)
+            filtros |= Q(specialty__icontains=palabra)
 
-    return render(request, "busqueda/buscar_doctor.html", {
-        "doctores": doctores
+        doctores = doctores.filter(filtros)
+
+    return render(request, 'busqueda/buscar_Doctor.html', {
+        'doctores': doctores,
+        'query': query
     })
 
 
-def disponibilidad(request, doctor_id):
-    doctor = Doctor.objects.get(id=doctor_id)
-    horarios = Disponibilidad.objects.filter(doctor=doctor)
-
-    return render(request, "busqueda/disponibilidad.html", {
-        "doctor": doctor,
-        "horarios": horarios
-    })
+# ⚡ DISPONIBILIDAD AJAX (FIX REAL COMPLETO)
 def disponibilidad_ajax(request, doctor_id):
-    doctor = get_object_or_404(Doctor, id=doctor_id)
-    # Use the correct fields: date and time
-    horarios = Disponibilidad.objects.filter(doctor=doctor).order_by('fecha', 'hora')
-    return render(request, "busqueda/tabla_disponibilidad.html", {
-        "doctor": doctor,
-        "horarios": horarios
+    horarios = DoctorSchedule.objects.filter(
+        doctor_id=doctor_id,
+        is_active=True
+    )
+
+    data = []
+
+    today = date.today()
+    end = today + timedelta(days=5)
+
+    current = today
+
+    while current <= end:
+
+        for h in horarios:
+            if current.weekday() == h.day_number:
+
+                # 🔥 FIX 1: limpiar minutos raros
+                hora = datetime.combine(current, h.start_time).replace(minute=0, second=0)
+
+                # 🔥 FIX 2: evitar bucles incorrectos
+                while hora.time() < h.end_time:
+
+                    data.append({
+                        "fecha": current.strftime("%Y-%m-%d"),
+                        "hora": hora.strftime("%H:%M")
+                    })
+
+                    hora += timedelta(hours=1)
+
+        current += timedelta(days=1)
+
+    return JsonResponse(data, safe=False)
+
+
+# 📄 DISPONIBILIDAD HTML (opcional)
+def disponibilidad(request, doctor_id):
+    horarios = DoctorSchedule.objects.filter(
+        doctor_id=doctor_id,
+        is_active=True
+    )
+
+    return render(request, 'busqueda/disponibilidad.html', {
+        'disponibilidad': horarios
     })

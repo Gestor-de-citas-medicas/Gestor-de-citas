@@ -1,54 +1,158 @@
 {% extends "base.html" %}
 
-{% block title %}Search Doctors | Medical Appointment Manager{% endblock %}
+{% block title %}Search Doctors{% endblock %}
 
 {% block content %}
-<div class="view-actions-header" style="margin-bottom: 24px; text-align: center;">
-  <h1 style="font-family: 'DM Serif Display', serif; font-size: 2rem; font-weight: normal; margin-bottom: 12px;">Available Doctors</h1>
-  <p style="color: var(--text-muted); font-size: 0.95rem;">Find the ideal specialist and check their available time slots.</p>
+
+<div class="content-box" style="margin-bottom: 24px; text-align: center;">
+  <h1 style="font-family: 'DM Serif Display', serif; font-size: 2rem;">
+    Available Doctors
+  </h1>
+  <p style="color: var(--text-muted);">
+    Find specialists and check availability
+  </p>
 </div>
 
-<div class="content-box" style="margin-bottom: 24px; padding: 20px;">
-  <form method="GET" style="display: flex; gap: 12px; align-items: center; max-width: 600px; margin: 0 auto;">
-    <input type="text" name="especialidad" class="input-control" placeholder="🔍 Search by specialization or name" style="flex: 1;">
-    <button type="submit" class="btn-primary" style="padding: 10px 24px; border-radius: 8px;">Search</button>
+<!-- SEARCH -->
+<div class="content-box" style="margin-bottom: 24px;">
+  <form method="GET"
+        style="display: flex; gap: 12px; max-width: 600px; margin: 0 auto;">
+
+    <input type="text"
+           name="especialidad"
+           class="input-control"
+           placeholder="Search by name or specialty"
+           value="{{ query }}">
+
+    <button type="submit" class="btn-primary">
+      Search
+    </button>
+
   </form>
 </div>
 
-<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+<!-- GRID DOCTORES -->
+<div style="
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+">
+
   {% for doctor in doctores %}
-    <div class="content-box" style="padding: 24px; display: flex; flex-direction: column;">
-      <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
-        <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--accent2), var(--accent)); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 18px; color: #fff;">
-          {{ doctor.nombre|make_list|first|upper }}
-        </div>
-        <div>
-          <div style="font-weight: 600; font-size: 1.05rem; color: var(--text);">Dr. {{ doctor.nombre }}</div>
-          <div style="font-size: 0.85rem; color: var(--text-muted);">{{ doctor.especialidad }}</div>
+  <div class="content-box" style="display: flex; flex-direction: column; gap: 12px;">
+
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div style="
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      ">
+        {{ doctor.full_name|make_list|first|upper }}
+      </div>
+
+      <div>
+        <div style="font-weight: 600;">Dr. {{ doctor.full_name }}</div>
+        <div style="color: var(--text-muted); font-size: 0.85rem;">
+          {{ doctor.get_specialty_display }}
         </div>
       </div>
-      
-      <button class="btn-secondary btn-disponibilidad" data-id="{{ doctor.id }}" style="width: 100%; border-radius: 10px; margin-top: auto; font-size: 0.9rem;">
-        Check Availability
-      </button>
     </div>
+
+    <!-- BOTÓN -->
+    <button class="btn-secondary btn-disponibilidad"
+            data-id="{{ doctor.user.id }}">
+      Check Availability
+    </button>
+
+  </div>
+  {% empty %}
+  <p style="color: var(--text-muted); grid-column: 1/-1; text-align: center;">
+    No doctors found
+  </p>
   {% endfor %}
+
 </div>
 
-<!-- Container for AJAX -->
-<div id="horarios-container" style="margin-top: 32px;"></div>
+<!-- RESULTADOS -->
+<div id="horarios-container" style="margin-top: 30px;"></div>
 
 <script>
 document.querySelectorAll('.btn-disponibilidad').forEach(btn => {
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', function () {
+
         const doctorId = this.dataset.id;
+
         fetch(`/busqueda/disponibilidad-ajax/${doctorId}/`)
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('horarios-container').innerHTML = html;
-                document.getElementById('horarios-container').scrollIntoView({behavior: "smooth", block: "start"});
+            .then(res => res.json())
+            .then(data => {
+
+                let html = "<div class='content-box'><h3>Available Slots</h3>";
+
+                if (data.length === 0) {
+                    html += "<p>No availability</p>";
+                } else {
+
+                    // 🔥 AGRUPAR POR FECHA
+                    const grouped = {};
+
+                    data.forEach(slot => {
+                        if (!grouped[slot.fecha]) {
+                            grouped[slot.fecha] = [];
+                        }
+                        grouped[slot.fecha].push(slot.hora);
+                    });
+
+                    // 🔥 MOSTRAR BIEN
+                    for (const fecha in grouped) {
+
+                        html += `
+                          <div style="margin-bottom:15px;">
+                            <div style="font-weight:600; margin-bottom:6px;">
+                              ${fecha}
+                            </div>
+
+                            <div style="
+                              display:flex;
+                              flex-wrap:wrap;
+                              gap:8px;
+                            ">
+                        `;
+
+                        grouped[fecha].forEach(hora => {
+                            html += `
+                              <span style="
+                                background: var(--available);
+                                color: var(--accent);
+                                padding:6px 10px;
+                                border-radius:8px;
+                                font-size:0.85rem;
+                                font-weight:500;
+                              ">
+                                ${hora}
+                              </span>
+                            `;
+                        });
+
+                        html += "</div></div>";
+                    }
+                }
+
+                html += "</div>";
+
+                const container = document.getElementById('horarios-container');
+                container.innerHTML = html;
+
+                container.scrollIntoView({ behavior: "smooth" });
             });
+
     });
 });
 </script>
+
 {% endblock %}
