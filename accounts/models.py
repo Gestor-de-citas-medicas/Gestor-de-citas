@@ -55,10 +55,16 @@ class DoctorSchedule(models.Model):
         ]
 
     def clean(self):
+        # 🔥 VALIDACIÓN BÁSICA
         if self.start_time and self.end_time:
             if self.start_time >= self.end_time:
                 raise ValidationError("End time must be greater than start time.")
 
+        # 🔥 FIX CRÍTICO: evitar None (esto te rompía todo)
+        if not self.doctor or self.day_number is None or not self.start_time or not self.end_time:
+            return
+
+        # 🔥 VALIDACIÓN DE SOLAPAMIENTO
         overlapping = DoctorSchedule.objects.filter(
             doctor=self.doctor,
             day_number=self.day_number,

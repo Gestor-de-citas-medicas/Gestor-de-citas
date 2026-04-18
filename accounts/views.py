@@ -4,335 +4,203 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import redirect, render, get_object_or_404
+from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
-from django.core.exceptions import ValidationError
 
-from .models import DoctorSchedule, ScheduleException
-from django.contrib.auth import update_session_auth_hash
+from datetime import date, timedelta, datetime
+
+from .models import DoctorSchedule
 from .forms import (
-    DoctorScheduleForm,
-    ScheduleExceptionForm,
     PatientRegisterForm,
     DoctorRegisterForm,
     PatientProfileUpdateForm,
     DoctorProfileUpdateForm,
 )
 
-
-def redirect_by_role(user):
-    if user.role == "ADMIN":
-        return redirect("admin_dashboard")
-    if user.role == "DOCTOR":
-        return redirect("doctor_dashboard")
-    return redirect("patient_dashboard")
+from appointments.models import Appointment
 
 
-def doctor_required(view_func):
-    @login_required
-    def wrapper(request, *args, **kwargs):
-        if request.user.role != "DOCTOR":
-            return redirect("home")
-        return view_func(request, *args, **kwargs)
-    return wrapper
-
-
+# =========================
+# HOME
+# =========================
 def home(request):
     return redirect("login")
 
 
+# =========================
+# LOGIN
+# =========================
 class RoleBasedLoginView(LoginView):
     template_name = "accounts/login.html"
     redirect_authenticated_user = True
 
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        form.fields["username"].widget.attrs.update({
-            "placeholder": "Tu usuario o email",
-            "autocomplete": "username"
-        })
-        form.fields["password"].widget.attrs.update({
-            "placeholder": "••••••••",
-            "autocomplete": "current-password"
-        })
-        return form
-
     def get_success_url(self):
         role = self.request.user.role
-        destinations = {
+        return reverse_lazy({
             "ADMIN": "admin_dashboard",
             "DOCTOR": "doctor_dashboard",
             "PATIENT": "patient_dashboard",
-        }
-        return reverse_lazy(destinations.get(role, "patient_dashboard"))
+        }.get(role, "patient_dashboard"))
 
 
+# =========================
+# REGISTER
+# =========================
 def register_choice(request):
-    if request.user.is_authenticated:
-        return redirect_by_role(request.user)
     return render(request, "accounts/register_choice.html")
 
 
 def patient_register(request):
-    if request.user.is_authenticated:
-        return redirect_by_role(request.user)
-
-    if request.method == "POST":
-        form = PatientRegisterForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect("patient_dashboard")
-    else:
-        form = PatientRegisterForm()
-
+    form = PatientRegisterForm(request.POST or None)
+    if form.is_valid():
+        user = form.save()
+        login(request, user)
+        return redirect("patient_dashboard")
     return render(request, "accounts/register_patient.html", {"form": form})
 
 
 def doctor_register(request):
-    if request.user.is_authenticated:
-        return redirect_by_role(request.user)
-
-    if request.method == "POST":
-        form = DoctorRegisterForm(request.POST, request.FILES)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect("doctor_dashboard")
-    else:
-        form = DoctorRegisterForm()
-
+    form = DoctorRegisterForm(request.POST or None, request.FILES or None)
+    if form.is_valid():
+        user = form.save()
+        login(request, user)
+        return redirect("doctor_dashboard")
     return render(request, "accounts/register_doctor.html", {"form": form})
 
 
+# =========================
+# DASHBOARDS
+# =========================
 @login_required
 def patient_dashboard(request):
-    # Redirect to appointments list instead of placeholder
+    # 🔥 RESTAURA TU FLUJO REAL
     return redirect("appointment_list")
 
 
 @login_required
 def admin_dashboard(request):
-    return HttpResponse("Admin dashboard ✅")
-
-
-@doctor_required
-def doctor_dashboard(request):
-    schedules = DoctorSchedule.objects.filter(doctor=request.user, is_active=True)
-    exceptions = ScheduleException.objects.filter(
-        doctor=request.user
-    ).order_by("date", "start_time")
-
-    return render(request, "accounts/doctor_dashboard.html", {
-        "schedules": schedules,
-        "exceptions": exceptions,
-    })
-
-
-@doctor_required
-@require_http_methods(["POST"])
-def schedule_create(request):
-    form = DoctorScheduleForm(request.POST)
-    if form.is_valid():
-        schedule = form.save(commit=False)
-        schedule.doctor = request.user
-        try:
-            schedule.full_clean()
-            schedule.save()
-        except ValidationError as e:
-            return JsonResponse({"ok": False, "errors": e.message_dict}, status=400)
-        return JsonResponse({"ok": True, "id": schedule.pk})
-    return JsonResponse({"ok": False, "errors": form.errors}, status=400)
-
-
-@doctor_required
-@require_http_methods(["POST"])
-def schedule_toggle(request, pk):
-    schedule = get_object_or_404(DoctorSchedule, pk=pk, doctor=request.user)
-    schedule.is_active = not schedule.is_active
-    schedule.save(update_fields=["is_active"])
-    return JsonResponse({"ok": True, "is_active": schedule.is_active})
-
-
-@doctor_required
-@require_http_methods(["POST"])
-def schedule_delete(request, pk):
-    schedule = get_object_or_404(DoctorSchedule, pk=pk, doctor=request.user)
-    schedule.delete()
-    return JsonResponse({"ok": True})
-
-
-@doctor_required
-@require_http_methods(["POST"])
-def exception_create(request):
-    form = ScheduleExceptionForm(request.POST)
-    if form.is_valid():
-        exc = form.save(commit=False)
-        exc.doctor = request.user
-        try:
-            exc.full_clean()
-            exc.save()
-        except ValidationError as e:
-            return JsonResponse({"ok": False, "errors": e.message_dict}, status=400)
-        return JsonResponse({"ok": True, "id": exc.pk})
-    return JsonResponse({"ok": False, "errors": form.errors}, status=400)
-
-
-@doctor_required
-@require_http_methods(["POST"])
-def exception_update(request, pk):
-    exc = get_object_or_404(ScheduleException, pk=pk, doctor=request.user)
-    form = ScheduleExceptionForm(request.POST, instance=exc)
-    if form.is_valid():
-        updated = form.save(commit=False)
-        try:
-            updated.full_clean()
-            updated.save()
-        except ValidationError as e:
-            return JsonResponse({"ok": False, "errors": e.message_dict}, status=400)
-        return JsonResponse({"ok": True})
-    return JsonResponse({"ok": False, "errors": form.errors}, status=400)
-
-
-@doctor_required
-@require_http_methods(["POST"])
-def exception_delete(request, pk):
-    exc = get_object_or_404(ScheduleException, pk=pk, doctor=request.user)
-    exc.delete()
-    return JsonResponse({"ok": True})
-
-
-@doctor_required
-def calendar_events(request):
-    from datetime import date, timedelta, time, datetime
-    from appointments.models import Appointment
-
-    today = date.today()
-    range_start = today - timedelta(weeks=4)
-    range_end = today + timedelta(weeks=8)
-
-    events = []
-
-    # Generate default schedule: 8:00 AM - 6:00 PM in 1-hour intervals
-    DEFAULT_START = time(8, 0)
-    DEFAULT_END = time(18, 0)
-    SLOT_DURATION = 1  # en horas
-
-    current = range_start
-    while current <= range_end:
-        # Create available slots by default
-        current_time = DEFAULT_START
-        while current_time < DEFAULT_END:
-            next_time = (datetime.combine(date.today(), current_time) + timedelta(hours=SLOT_DURATION)).time()
-            if next_time > DEFAULT_END:
-                break
-            
-            # Check if this slot is blocked by a schedule exception
-            is_blocked = ScheduleException.objects.filter(
-                doctor=request.user,
-                date=current,
-                type="BLOCKED",
-                start_time__lte=current_time,
-                end_time__gt=current_time
-            ).exists()
-            
-            if not is_blocked:
-                events.append({
-                    "id": f"slot-{current}-{current_time}",
-                    "title": "Available",
-                    "start": f"{current}T{current_time}",
-                    "end": f"{current}T{next_time}",
-                    "type": "available",
-                    "classNames": ["event-available"],
-                })
-            
-            current_time = next_time
-        
-        current += timedelta(days=1)
-
-    # Get blocked exceptions only (extra availability is handled separately)
-    exceptions = ScheduleException.objects.filter(
-        doctor=request.user,
-        date__range=(range_start, range_end),
-        type="BLOCKED"
-    )
-    
-    for exc in exceptions:
-        events.append({
-            "id": f"exc-{exc.pk}",
-            "title": "Blocked",
-            "start": f"{exc.date}T{exc.start_time}",
-            "end": f"{exc.date}T{exc.end_time}",
-            "type": "blocked",
-            "classNames": ["event-blocked"],
-            "reason": exc.reason,
-            "exceptionId": exc.pk,
-        })
-
-    # Get confirmed appointments with patients
-    appointments = Appointment.objects.filter(
-        doctor=request.user,
-        date__range=(range_start, range_end),
-        status__in=[Appointment.Status.PENDING, Appointment.Status.CONFIRMED, Appointment.Status.COMPLETED]
-    ).select_related("patient")
-    
-    for apt in appointments:
-        if apt.status == Appointment.Status.PENDING:
-            status_label = "Pending"
-            css_class = "event-pending"
-        elif apt.status == Appointment.Status.CONFIRMED:
-            status_label = "Confirmed"
-            css_class = "event-appointment"
-        else:  # COMPLETED
-            status_label = "Completed"
-            css_class = "event-completed"
-        
-        events.append({
-            "id": f"apt-{apt.pk}",
-            "title": f"Reserved by {apt.patient.first_name}",
-            "start": f"{apt.date}T{apt.start_time}",
-            "end": f"{apt.date}T{apt.end_time}",
-            "type": "appointment",
-            "classNames": [css_class],
-            "status": apt.status,
-            "patientName": apt.patient.get_full_name(),
-            "patientEmail": apt.patient.email,
-            "reason": apt.reason,
-            "appointmentId": apt.pk,
-        })
-
-    return JsonResponse(events, safe=False)
+    return HttpResponse("Admin dashboard")
 
 
 @login_required
-def profile_update(request):
-    """Allow any authenticated user to update their personal information."""
-    user = request.user
+def doctor_dashboard(request):
+    return render(request, "accounts/doctor_dashboard.html")
 
-    if user.role == "DOCTOR":
+
+# =========================
+# PROFILE UPDATE
+# =========================
+@login_required
+def profile_update(request):
+
+    if request.user.role == "DOCTOR":
         FormClass = DoctorProfileUpdateForm
     else:
         FormClass = PatientProfileUpdateForm
 
     if request.method == "POST":
-        form = FormClass(request.POST, request.FILES, instance=user)
+        form = FormClass(
+            request.POST,
+            request.FILES,
+            instance=request.user
+        )
+
         if form.is_valid():
             form.save()
-            messages.success(request, "Your profile has been updated successfully.")
+            messages.success(request, "Profile updated successfully ✅")
             return redirect("profile_update")
+        else:
+            messages.error(request, "Please correct the errors ❌")
+
     else:
-        form = FormClass(instance=user)
+        form = FormClass(instance=request.user)
 
-    return render(request, "accounts/profile_update.html", {"form": form})
+    return render(request, "accounts/profile_update.html", {
+        "form": form
+    })
 
 
+# =========================
+# DELETE ACCOUNT
+# =========================
 @login_required
 @require_http_methods(["POST"])
 def profile_delete(request):
-    """Allow any authenticated user to permanently delete their account."""
-    user = request.user
-    from django.contrib.auth import logout
-    logout(request)
-    user.delete()
-    messages.success(request, "Your account has been permanently deleted.")
+    request.user.delete()
+    messages.success(request, "Account deleted successfully")
     return redirect("login")
+
+
+# =========================
+# CREATE SCHEDULE
+# =========================
+@login_required
+@require_http_methods(["POST"])
+def schedule_create(request):
+    try:
+        day_number = request.POST.get("day_number")
+        start_time = request.POST.get("start_time")
+        end_time = request.POST.get("end_time")
+
+        schedule = DoctorSchedule(
+            doctor=request.user,
+            day_number=int(day_number),
+            start_time=start_time,
+            end_time=end_time,
+        )
+
+        schedule.full_clean()
+        schedule.save()
+
+        return JsonResponse({"ok": True})
+
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": str(e)}, status=500)
+
+
+# =========================
+# CALENDAR EVENTS (CON ESTADOS)
+# =========================
+@login_required
+def calendar_events(request):
+
+    today = date.today()
+    start = today - timedelta(days=7)
+    end = today + timedelta(days=30)
+
+    events = []
+    schedules = DoctorSchedule.objects.filter(doctor=request.user)
+
+    for s in schedules:
+        current = start
+
+        while current <= end:
+            if current.weekday() == s.day_number:
+
+                start_dt = datetime.combine(current, s.start_time)
+                end_dt = datetime.combine(current, s.end_time)
+
+                citas = Appointment.objects.filter(
+                    doctor=request.user,
+                    date=current,
+                    start_time__gte=s.start_time,
+                    start_time__lt=s.end_time,
+                )
+
+                if citas.exists():
+                    title = "Reserved"
+                    color = "#ef4444"
+                else:
+                    title = "Available"
+                    color = "#10b981"
+
+                events.append({
+                    "title": title,
+                    "start": start_dt.isoformat(),
+                    "end": end_dt.isoformat(),
+                    "color": color,
+                })
+
+            current += timedelta(days=1)
+
+    return JsonResponse(events, safe=False)
