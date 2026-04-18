@@ -1,6 +1,9 @@
 from django import forms
 from django.contrib.auth import get_user_model
+from datetime import datetime, timedelta
+
 from .models import Appointment, AppointmentReview
+from accounts.models import DoctorSchedule
 
 User = get_user_model()
 
@@ -8,33 +11,64 @@ User = get_user_model()
 class AppointmentForm(forms.ModelForm):
 
     class Meta:
-        model  = Appointment
+        model = Appointment
         fields = ["doctor", "date", "start_time", "reason"]
         widgets = {
-            "doctor":     forms.Select(attrs={"class": "field-input"}),
-            "date":       forms.DateInput(attrs={"type": "date", "class": "field-input"}),
-            "start_time": forms.TimeInput(attrs={"type": "time", "class": "field-input"}),
-            "reason":     forms.Textarea(attrs={"rows": 3, "class": "field-input", "placeholder": "Describe your reason for the visit..."}),
+            "doctor": forms.Select(attrs={"class": "field-input"}),
+            "date": forms.DateInput(attrs={"type": "date", "class": "field-input"}),
+            "start_time": forms.Select(attrs={"class": "field-input"}),  # 🔥 CAMBIO
+            "reason": forms.Textarea(attrs={"rows": 3, "class": "field-input"}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Only show users with DOCTOR role in the dropdown
-        self.fields["doctor"].queryset = User.objects.filter(role="DOCTOR")
-        self.fields["doctor"].label    = "Doctor"
-        self.fields["date"].label      = "Date"
-        self.fields["start_time"].label = "Appointment time"
-        self.fields["reason"].label     = "Reason for visit"
-        self.fields["reason"].required  = False
 
-    def clean(self):
-        cleaned = super().clean()
-        # End time is calculated automatically (1 hour after start)
-        return cleaned
+        # doctores
+        self.fields["doctor"].queryset = User.objects.filter(role="DOCTOR")
+
+        # labels
+        self.fields["doctor"].label = "Doctor"
+        self.fields["date"].label = "Date"
+        self.fields["start_time"].label = "Appointment time"
+        self.fields["reason"].label = "Reason for visit"
+        self.fields["reason"].required = False
+
+        # 🔥 VACÍO POR DEFECTO
+        self.fields["start_time"].choices = []
+
+        # 🔥 GENERAR HORAS SI YA HAY DATA
+        if "doctor" in self.data and "date" in self.data:
+            try:
+                doctor_id = int(self.data.get("doctor"))
+                selected_date = datetime.strptime(
+                    self.data.get("date"), "%Y-%m-%d"
+                ).date()
+
+                weekday = selected_date.weekday()
+
+                schedules = DoctorSchedule.objects.filter(
+                    doctor_id=doctor_id,
+                    day_number=weekday,
+                    is_active=True
+                )
+
+                choices = []
+
+                for s in schedules:
+                    hora = datetime.combine(selected_date, s.start_time).replace(minute=0)
+
+                    while hora.time() < s.end_time:
+                        h = hora.time().strftime("%H:%M")
+                        choices.append((h, h))
+                        hora += timedelta(hours=1)
+
+                self.fields["start_time"].choices = choices
+
+            except Exception as e:
+                print("ERROR HORAS:", e)
 
 
 class AppointmentReviewForm(forms.ModelForm):
-    """Form for patients to leave a post-appointment review."""
 
     class Meta:
         model = AppointmentReview
@@ -44,16 +78,12 @@ class AppointmentReviewForm(forms.ModelForm):
             "comment": forms.Textarea(attrs={
                 "rows": 4,
                 "class": "field-input",
-                "placeholder": "Share your experience with this doctor (optional)...",
+                "placeholder": "Share your experience..."
             }),
-        }
-        labels = {
-            "rating": "Rating",
-            "comment": "Your Review",
         }
 
     def clean_rating(self):
         rating = self.cleaned_data.get("rating")
         if rating is None or rating < 1 or rating > 5:
-            raise forms.ValidationError("Please select a rating between 1 and 5 stars.")
+            raise forms.ValidationError("Select between 1 and 5 stars")
         return rating
