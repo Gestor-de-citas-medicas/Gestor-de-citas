@@ -67,6 +67,21 @@ class AppointmentForm(forms.ModelForm):
             except Exception as e:
                 print("ERROR HORAS:", e)
 
+    def clean_date(self):
+        d = self.cleaned_data.get("date")
+        if d and d < datetime.now().date():
+            raise forms.ValidationError("You cannot book appointments on a past date.")
+        return d
+
+    def clean(self):
+        cleaned_data = super().clean()
+        d = cleaned_data.get("date")
+        start_time = cleaned_data.get("start_time")
+        if d and start_time:
+            if datetime.combine(d, start_time) < datetime.now():
+                raise forms.ValidationError("You cannot book appointments at a past time.")
+        return cleaned_data
+
 
 class AppointmentReviewForm(forms.ModelForm):
 
