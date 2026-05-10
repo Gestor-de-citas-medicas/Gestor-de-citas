@@ -8,24 +8,31 @@ User = get_user_model()
 
 
 # =========================
-# 🔥 PATIENT REGISTER (RESTAURADO)
+# 🔥 PATIENT REGISTER
 # =========================
 class PatientRegisterForm(UserCreationForm):
     first_name = forms.CharField(max_length=150)
-    last_name  = forms.CharField(max_length=150)
-    email      = forms.EmailField()
+    last_name = forms.CharField(max_length=150)
+    email = forms.EmailField()
 
     class Meta:
         model = User
-        fields = ("username", "first_name", "last_name", "email", "password1", "password2")
+        fields = (
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "password1",
+            "password2",
+        )
 
     def save(self, commit=True):
         user = super().save(commit=False)
 
         user.first_name = self.cleaned_data["first_name"]
-        user.last_name  = self.cleaned_data["last_name"]
-        user.email      = self.cleaned_data["email"]
-        user.role       = "PATIENT"
+        user.last_name = self.cleaned_data["last_name"]
+        user.email = self.cleaned_data["email"]
+        user.role = "PATIENT"
 
         if commit:
             user.save()
@@ -34,43 +41,59 @@ class PatientRegisterForm(UserCreationForm):
 
 
 # =========================
-# 🔥 DOCTOR REGISTER (RESTAURADO COMPLETO)
+# 🔥 DOCTOR REGISTER
 # =========================
 class DoctorRegisterForm(UserCreationForm):
     first_name = forms.CharField(max_length=150)
-    last_name  = forms.CharField(max_length=150)
-    email      = forms.EmailField()
+    last_name = forms.CharField(max_length=150)
+    email = forms.EmailField()
 
-    specialty  = forms.ChoiceField(choices=DoctorProfile.Specialty.choices)
-    phone      = forms.CharField(required=False)
-    license    = forms.CharField(required=False)
-    cv         = forms.FileField(required=False)
+    specialty = forms.ChoiceField(
+        choices=DoctorProfile.Specialty.choices
+    )
+
+    phone = forms.CharField(required=False)
+
+    # 👇 CAMBIADO
+    license_number = forms.CharField(required=False)
+
+    cv = forms.FileField(required=False)
 
     class Meta:
         model = User
-        fields = ("username", "first_name", "last_name", "email", "password1", "password2")
+        fields = (
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "password1",
+            "password2",
+        )
 
     def save(self, commit=True):
         user = super().save(commit=False)
 
         user.first_name = self.cleaned_data["first_name"]
-        user.last_name  = self.cleaned_data["last_name"]
-        user.email      = self.cleaned_data["email"]
-        user.role       = "DOCTOR"
+        user.last_name = self.cleaned_data["last_name"]
+        user.email = self.cleaned_data["email"]
+        user.role = "DOCTOR"
 
         if commit:
             user.save()
 
-            profile = user.doctor_profile
-            profile.full_name = f"{user.first_name} {user.last_name}"
-            profile.specialty = self.cleaned_data["specialty"]
-            profile.phone     = self.cleaned_data.get("phone")
-            profile.license   = self.cleaned_data.get("license")
+            profile = DoctorProfile.objects.create(
+                user=user,
+                full_name=f"{user.first_name} {user.last_name}",
+                specialty=self.cleaned_data["specialty"],
+                phone=self.cleaned_data.get("phone"),
+
+                # 👇 CAMBIADO
+                license_number=self.cleaned_data.get("license_number"),
+            )
 
             if self.cleaned_data.get("cv"):
                 profile.cv = self.cleaned_data["cv"]
-
-            profile.save()
+                profile.save()
 
         return user
 
@@ -80,8 +103,8 @@ class DoctorRegisterForm(UserCreationForm):
 # =========================
 class PatientProfileUpdateForm(forms.ModelForm):
     first_name = forms.CharField(max_length=150)
-    last_name  = forms.CharField(max_length=150)
-    email      = forms.EmailField()
+    last_name = forms.CharField(max_length=150)
+    email = forms.EmailField()
 
     class Meta:
         model = User
@@ -96,16 +119,28 @@ class PatientProfileUpdateForm(forms.ModelForm):
 
 
 # =========================
-# 🔥 DOCTOR PROFILE
+# 🔥 DOCTOR PROFILE UPDATE
 # =========================
 class DoctorProfileUpdateForm(forms.ModelForm):
     first_name = forms.CharField(max_length=150)
-    last_name  = forms.CharField(max_length=150)
-    email      = forms.EmailField()
-    specialty  = forms.ChoiceField(choices=DoctorProfile.Specialty.choices)
-    phone      = forms.CharField(required=False)
-    bio        = forms.CharField(required=False, widget=forms.Textarea)
-    avatar     = forms.ImageField(required=False)
+    last_name = forms.CharField(max_length=150)
+    email = forms.EmailField()
+
+    specialty = forms.ChoiceField(
+        choices=DoctorProfile.Specialty.choices
+    )
+
+    phone = forms.CharField(required=False)
+
+    # 👇 AGREGADO
+    license_number = forms.CharField(required=False)
+
+    bio = forms.CharField(
+        required=False,
+        widget=forms.Textarea
+    )
+
+    avatar = forms.ImageField(required=False)
 
     class Meta:
         model = User
@@ -113,13 +148,19 @@ class DoctorProfileUpdateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
+
         super().__init__(*args, **kwargs)
 
         if hasattr(self.instance, "doctor_profile"):
             profile = self.instance.doctor_profile
+
             self.fields["specialty"].initial = profile.specialty
-            self.fields["phone"].initial     = profile.phone
-            self.fields["bio"].initial       = profile.bio
+            self.fields["phone"].initial = profile.phone
+
+            # 👇 AGREGADO
+            self.fields["license_number"].initial = profile.license_number
+
+            self.fields["bio"].initial = profile.bio
 
         for f in self.fields.values():
             f.widget.attrs.update({"class": "input-control"})
@@ -132,10 +173,18 @@ class DoctorProfileUpdateForm(forms.ModelForm):
             user.save()
 
             profile = user.doctor_profile
-            profile.full_name = f"{user.first_name} {user.last_name}"
+
+            profile.full_name = (
+                f"{user.first_name} {user.last_name}"
+            )
+
             profile.specialty = self.cleaned_data["specialty"]
-            profile.phone     = self.cleaned_data.get("phone")
-            profile.bio       = self.cleaned_data.get("bio")
+            profile.phone = self.cleaned_data.get("phone")
+
+            # 👇 AGREGADO
+            profile.license_number = self.cleaned_data.get("license_number")
+
+            profile.bio = self.cleaned_data.get("bio")
 
             if self.cleaned_data.get("avatar"):
                 profile.avatar = self.cleaned_data["avatar"]
