@@ -31,11 +31,15 @@ def home(request):
 # LOGIN
 # =========================
 class RoleBasedLoginView(LoginView):
+
     template_name = "accounts/login.html"
+
     redirect_authenticated_user = True
 
     def get_success_url(self):
+
         role = self.request.user.role
+
         return reverse_lazy({
             "ADMIN": "admin_dashboard",
             "DOCTOR": "doctor_dashboard",
@@ -47,25 +51,52 @@ class RoleBasedLoginView(LoginView):
 # REGISTER
 # =========================
 def register_choice(request):
-    return render(request, "accounts/register_choice.html")
+
+    return render(
+        request,
+        "accounts/register_choice.html"
+    )
 
 
 def patient_register(request):
+
     form = PatientRegisterForm(request.POST or None)
+
     if form.is_valid():
+
         user = form.save()
+
         login(request, user)
+
         return redirect("patient_dashboard")
-    return render(request, "accounts/register_patient.html", {"form": form})
+
+    return render(
+        request,
+        "accounts/register_patient.html",
+        {"form": form}
+    )
 
 
 def doctor_register(request):
-    form = DoctorRegisterForm(request.POST or None, request.FILES or None)
+
+    form = DoctorRegisterForm(
+        request.POST or None,
+        request.FILES or None
+    )
+
     if form.is_valid():
+
         user = form.save()
+
         login(request, user)
+
         return redirect("doctor_dashboard")
-    return render(request, "accounts/register_doctor.html", {"form": form})
+
+    return render(
+        request,
+        "accounts/register_doctor.html",
+        {"form": form}
+    )
 
 
 # =========================
@@ -73,18 +104,23 @@ def doctor_register(request):
 # =========================
 @login_required
 def patient_dashboard(request):
-    # 🔥 RESTAURA TU FLUJO REAL
+
     return redirect("appointment_list")
 
 
 @login_required
 def admin_dashboard(request):
+
     return HttpResponse("Admin dashboard")
 
 
 @login_required
 def doctor_dashboard(request):
-    return render(request, "accounts/doctor_dashboard.html")
+
+    return render(
+        request,
+        "accounts/doctor_dashboard.html"
+    )
 
 
 # =========================
@@ -99,6 +135,7 @@ def profile_update(request):
         FormClass = PatientProfileUpdateForm
 
     if request.method == "POST":
+
         form = FormClass(
             request.POST,
             request.FILES,
@@ -106,18 +143,36 @@ def profile_update(request):
         )
 
         if form.is_valid():
+
             form.save()
-            messages.success(request, "Profile updated successfully ✅")
+
+            messages.success(
+                request,
+                "Profile updated successfully ✅"
+            )
+
             return redirect("profile_update")
+
         else:
-            messages.error(request, "Please correct the errors ❌")
+
+            messages.error(
+                request,
+                "Please correct the errors ❌"
+            )
 
     else:
-        form = FormClass(instance=request.user)
 
-    return render(request, "accounts/profile_update.html", {
-        "form": form
-    })
+        form = FormClass(
+            instance=request.user
+        )
+
+    return render(
+        request,
+        "accounts/profile_update.html",
+        {
+            "form": form
+        }
+    )
 
 
 # =========================
@@ -126,8 +181,14 @@ def profile_update(request):
 @login_required
 @require_http_methods(["POST"])
 def profile_delete(request):
+
     request.user.delete()
-    messages.success(request, "Account deleted successfully")
+
+    messages.success(
+        request,
+        "Account deleted successfully"
+    )
+
     return redirect("login")
 
 
@@ -137,70 +198,116 @@ def profile_delete(request):
 @login_required
 @require_http_methods(["POST"])
 def schedule_create(request):
+
     try:
+
         day_number = request.POST.get("day_number")
+
         start_time = request.POST.get("start_time")
+
         end_time = request.POST.get("end_time")
 
         schedule = DoctorSchedule(
+
             doctor=request.user,
+
             day_number=int(day_number),
+
             start_time=start_time,
+
             end_time=end_time,
         )
 
         schedule.full_clean()
+
         schedule.save()
 
         return JsonResponse({"ok": True})
 
     except Exception as e:
-        return JsonResponse({"ok": False, "error": str(e)}, status=500)
+
+        return JsonResponse({
+            "ok": False,
+            "error": str(e)
+        }, status=500)
 
 
 # =========================
-# CALENDAR EVENTS (CON ESTADOS)
+# CALENDAR EVENTS
+# 🔥 NUEVA VERSION
 # =========================
 @login_required
 def calendar_events(request):
 
     today = date.today()
+
     start = today - timedelta(days=7)
+
     end = today + timedelta(days=30)
 
     events = []
-    schedules = DoctorSchedule.objects.filter(doctor=request.user)
+
+    schedules = DoctorSchedule.objects.filter(
+        doctor=request.user
+    )
 
     for s in schedules:
-        current = start
 
-        while current <= end:
-            if current.weekday() == s.day_number:
+        current_day = start
 
-                start_dt = datetime.combine(current, s.start_time)
-                end_dt = datetime.combine(current, s.end_time)
+        while current_day <= end:
 
-                citas = Appointment.objects.filter(
-                    doctor=request.user,
-                    date=current,
-                    start_time__gte=s.start_time,
-                    start_time__lt=s.end_time,
+            if current_day.weekday() == s.day_number:
+
+                current_time = datetime.combine(
+                    current_day,
+                    s.start_time
                 )
 
-                if citas.exists():
-                    title = "Reserved"
-                    color = "#ef4444"
-                else:
-                    title = "Available"
-                    color = "#10b981"
+                end_time = datetime.combine(
+                    current_day,
+                    s.end_time
+                )
 
-                events.append({
-                    "title": title,
-                    "start": start_dt.isoformat(),
-                    "end": end_dt.isoformat(),
-                    "color": color,
-                })
+                # 🔥 crear bloques individuales
+                while current_time < end_time:
 
-            current += timedelta(days=1)
+                    next_time = current_time + timedelta(hours=1)
+
+                    appointment_exists = Appointment.objects.filter(
+                        doctor=request.user,
+                        date=current_day,
+                        start_time=current_time.time()
+                    ).exists()
+
+                    if appointment_exists:
+
+                        title = "Reserved"
+
+                        color = "#ef4444"
+
+                    else:
+
+                        title = "Available"
+
+                        color = "#10b981"
+
+                    events.append({
+
+                        "title": title,
+
+                        "start": current_time.isoformat(),
+
+                        "end": next_time.isoformat(),
+
+                        "color": color,
+
+                        "display": "block"
+
+                    })
+
+                    current_time = next_time
+
+            current_day += timedelta(days=1)
 
     return JsonResponse(events, safe=False)

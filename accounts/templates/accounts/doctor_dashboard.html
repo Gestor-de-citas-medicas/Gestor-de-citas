@@ -5,6 +5,58 @@
 {% block extra_head %}
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+<style>
+
+#calendar {
+    background: white;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+/* 🔥 líneas horizontales */
+.fc-timegrid-slot {
+    border-bottom: 1px solid #b0b0b0 !important;
+}
+
+/* 🔥 líneas verticales */
+.fc-theme-standard td,
+.fc-theme-standard th {
+    border: 1px solid #c5c5c5 !important;
+}
+
+/* 🔥 eventos tipo celda */
+.fc-event {
+
+    opacity: 0.90 !important;
+
+    border-radius: 0 !important;
+
+    border: 1px solid rgba(0,0,0,0.15) !important;
+
+    box-shadow: none !important;
+
+    margin: 0 !important;
+}
+
+/* 🔥 ocupa bien la celda */
+.fc-timegrid-event {
+    inset: 0 !important;
+}
+
+/* 🔥 texto */
+.fc-event-main {
+    padding: 2px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+/* 🔥 elimina fondo raro */
+.fc-timegrid-col-bg {
+    opacity: 0;
+}
+
+</style>
 {% endblock %}
 
 {% block content %}
@@ -23,7 +75,9 @@
     <h2>New Availability</h2>
 
     <input type="date" id="input-date" class="input-control">
+
     <input type="time" id="input-start" class="input-control">
+
     <input type="time" id="input-end" class="input-control">
 
     <div style="margin-top: 15px;">
@@ -47,82 +101,129 @@ let calendar;
 
 document.addEventListener('DOMContentLoaded', function () {
 
-  // 🔥 ocultar modal al cargar
-  document.getElementById('modalOverlay').style.display = "none";
+    document.getElementById('modalOverlay').style.display = "none";
 
-  calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
-    initialView: 'timeGridWeek',
-    selectable: true,
+    calendar = new FullCalendar.Calendar(
+        document.getElementById('calendar'),
+        {
 
-    // ✅ FIX RUTA
-    events: function(info, successCallback, failureCallback) {
-      fetch('/doctor/calendar/events/')
-        .then(res => res.json())
-        .then(data => successCallback(data))
-        .catch(err => failureCallback(err));
-    },
+            initialView: 'timeGridWeek',
 
-    select: function(info) {
-      document.getElementById("input-date").value = info.startStr.slice(0,10);
-      document.getElementById("input-start").value = info.startStr.slice(11,16);
-      document.getElementById("input-end").value = info.endStr.slice(11,16);
-      openModal();
-    }
-  });
+            selectable: true,
 
-  calendar.render();
+            allDaySlot: false,
+
+            expandRows: true,
+
+            slotDuration: '01:00:00',
+
+            slotLabelInterval: '01:00',
+
+            nowIndicator: false,
+
+            events: function(info, successCallback, failureCallback) {
+
+                fetch('/doctor/calendar/events/')
+                    .then(res => res.json())
+                    .then(data => successCallback(data))
+                    .catch(err => failureCallback(err));
+            },
+
+            select: function(info) {
+
+                document.getElementById("input-date").value =
+                    info.startStr.slice(0,10);
+
+                document.getElementById("input-start").value =
+                    info.startStr.slice(11,16);
+
+                document.getElementById("input-end").value =
+                    info.endStr.slice(11,16);
+
+                openModal();
+            }
+
+        }
+    );
+
+    calendar.render();
 });
 
 function openModal() {
-  document.getElementById('modalOverlay').style.display = "flex";
+
+    document.getElementById('modalOverlay').style.display = "flex";
 }
 
 function closeModal() {
-  document.getElementById('modalOverlay').style.display = "none";
+
+    document.getElementById('modalOverlay').style.display = "none";
 }
 
 function saveEvent() {
 
-  const date  = document.getElementById('input-date').value;
-  const start = document.getElementById('input-start').value;
-  const end   = document.getElementById('input-end').value;
+    const date  = document.getElementById('input-date').value;
 
-  if (!date || !start || !end) {
-    alert("Complete all fields");
-    return;
-  }
+    const start = document.getElementById('input-start').value;
 
-  if (start >= end) {
-    alert("End time must be greater than start time");
-    return;
-  }
+    const end   = document.getElementById('input-end').value;
 
-  const dayNumber = new Date(date).getDay();
+    if (!date || !start || !end) {
 
-  // ✅ FIX RUTA
-  fetch("/doctor/schedule/create/", {
-    method: "POST",
-    headers: {
-      "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: `day_number=${dayNumber}&start_time=${start}&end_time=${end}`
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.ok) {
-      alert("Saved ✅");
-      calendar.refetchEvents();
-      closeModal();
-    } else {
-      alert("Error backend");
-      console.log(data);
+        alert("Complete all fields");
+        return;
     }
-  })
-  .catch(err => {
-    console.error(err);
-    alert("Server error real");
-  });
+
+    if (start >= end) {
+
+        alert("End time must be greater than start time");
+        return;
+    }
+
+    const dayNumber = new Date(date).getDay();
+
+    fetch("/doctor/schedule/create/", {
+
+        method: "POST",
+
+        headers: {
+            "X-CSRFToken":
+                document.querySelector(
+                    '[name=csrfmiddlewaretoken]'
+                ).value,
+
+            "Content-Type":
+                "application/x-www-form-urlencoded"
+        },
+
+        body:
+            `day_number=${dayNumber}` +
+            `&start_time=${start}` +
+            `&end_time=${end}`
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if (data.ok) {
+
+            alert("Saved ✅");
+
+            calendar.refetchEvents();
+
+            closeModal();
+
+        } else {
+
+            alert("Error backend");
+
+            console.log(data);
+        }
+    })
+    .catch(err => {
+
+        console.error(err);
+
+        alert("Server error real");
+    });
 }
 
 </script>
