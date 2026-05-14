@@ -353,6 +353,7 @@ function closeModal() {
 document.addEventListener('DOMContentLoaded', function () {
   calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
     initialView: 'timeGridWeek',
+    timeZone: 'local',
     height: 'auto',
     selectable: true,
     allDaySlot: false,
