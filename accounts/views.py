@@ -40,6 +40,12 @@ def home(request):
 class RoleBasedLoginView(LoginView):
     template_name = "accounts/login.html"
 
+    def dispatch(self, request, *args, **kwargs):
+        # If user is already authenticated, redirect to their dashboard
+        if request.user.is_authenticated:
+            return redirect_by_role(request.user)
+        return super().dispatch(request, *args, **kwargs)
+
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         form.fields["username"].widget.attrs.update({

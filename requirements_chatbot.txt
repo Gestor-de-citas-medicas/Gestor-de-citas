@@ -1,0 +1,11 @@
+# Dependencias para el chatbot IA
+# Instala con: pip install -r requirements_chatbot.txt
+
+# Proveedor OpenAI (GPT-4o-mini, GPT-4o)
+openai>=1.30
+
+# Proveedor Google Gemini (gemini-2.0-flash, gemini-1.5-pro)
+google-generativeai>=0.7
+
+# Para cargar .env (opcional)
+python-dotenv>=1.0

@@ -1,20 +1,10 @@
-from django.db import models
-
-class Doctor(models.Model):
-    nombre = models.CharField(max_length=100)
-    especialidad = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.nombre
-
-
-class Disponibilidad(models.Model):
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
-    fecha = models.DateField()
-    hora = models.TimeField()
-
-    def __str__(self):
-        return f"{self.doctor.nombre} - {self.fecha} {self.hora}"
-    
-
-
+# busqueda/models.py
+# Los modelos Doctor y Disponibilidad han sido eliminados.
+# La app busqueda ahora usa directamente los modelos reales:
+#   - accounts.DoctorProfile  (datos del doctor)
+#   - accounts.DoctorSchedule (horario semanal recurrente)
+#   - accounts.ScheduleException (excepciones de horario)
+#   - appointments.Appointment (citas existentes)
+#
+# Las tablas antiguas busqueda_doctor y busqueda_disponibilidad
+# se eliminarán con la siguiente migración.

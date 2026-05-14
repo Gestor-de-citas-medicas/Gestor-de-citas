@@ -1,41 +1,97 @@
 {% extends "base.html" %}
 
-{% block title %}Disponibilidad | MedSync{% endblock %}
+{% block title %}Disponibilidad — Dr(a). {% if profile %}{{ profile.full_name }}{% else %}{{ doctor.username }}{% endif %} | MAMP{% endblock %}
+
+{% block extra_css %}
+    .slots-day-header {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.1rem; font-weight: 400;
+      padding: 14px 0 8px; color: var(--text);
+      border-bottom: 1px solid var(--border);
+      margin-top: 20px;
+    }
+    .slots-day-header:first-of-type { margin-top: 0; }
+    .slots-grid {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      padding: 14px 0;
+    }
+    .slot-btn {
+      padding: 10px 18px; border-radius: 10px;
+      border: 1px solid var(--available-border);
+      background: var(--available);
+      color: var(--accent); font-size: 0.88rem;
+      cursor: pointer; transition: all .2s;
+      text-decoration: none; font-family: 'DM Sans', sans-serif;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .slot-btn:hover {
+      background: var(--accent); color: #0d1117;
+      border-color: var(--accent); transform: scale(1.03);
+    }
+    .doctor-info-header {
+      display: flex; align-items: center; gap: 18px;
+      margin-bottom: 24px; padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .doctor-info-avatar {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 24px; color: #fff; flex-shrink: 0;
+    }
+{% endblock %}
 
 {% block content %}
-<div class="content-box" style="max-width: 600px; margin: 40px auto;">
-  <div style="margin-bottom: 20px; text-align: center;">
-    <h1 style="font-family: 'DM Serif Display', serif; font-size: 1.6rem; font-weight: normal; margin-bottom: 8px;">Disponibilidad</h1>
-    <p style="color: var(--text-muted); font-size: 0.95rem;">Dr(a). {{ doctor.nombre }}</p>
+<div class="content-box" style="max-width: 720px; margin: 0 auto;">
+
+  <div class="doctor-info-header">
+    <div class="doctor-info-avatar">
+      {% if profile %}{{ profile.full_name|make_list|first|upper }}{% else %}{{ doctor.username|make_list|first|upper }}{% endif %}
+    </div>
+    <div>
+      <h1 style="font-family: 'DM Serif Display', serif; font-size: 1.6rem; font-weight: normal; margin-bottom: 4px;">
+        Dr(a). {% if profile %}{{ profile.full_name }}{% else %}{{ doctor.username }}{% endif %}
+      </h1>
+      {% if profile %}
+      <span style="display: inline-block; padding: 3px 12px; border-radius: 12px; font-size: 0.78rem; background: var(--available); color: var(--accent);">
+        {{ profile.get_specialty_display }}
+      </span>
+      {% endif %}
+    </div>
   </div>
 
-  <div class="table-responsive">
-    <table class="med-table" style="width: 100%;">
-      <thead>
-        <tr>
-          <th>Fecha</th>
-          <th>Hora</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for horario in horarios %}
-        <tr>
-          <td><i class="fa-regular fa-calendar" style="color: var(--text-muted); margin-right: 8px;"></i>{{ horario.fecha }}</td>
-          <td style="color: var(--accent);"><i class="fa-regular fa-clock" style="margin-right: 8px;"></i>{{ horario.hora }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="2" style="text-align: center; padding: 32px; color: var(--text-muted);">
-            No hay horarios disponibles próximamente.
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+  <h2 style="font-family: 'DM Serif Display', serif; font-size: 1.3rem; font-weight: normal; margin-bottom: 4px;">
+    📅 Próximos horarios disponibles
+  </h2>
+  <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 16px;">
+    Selecciona un horario para agendar tu cita. Slots de 30 minutos.
+  </p>
+
+  {% regroup slots by date as days %}
+  {% for day in days %}
+    <div class="slots-day-header">
+      <i class="fa-regular fa-calendar" style="color: var(--accent); margin-right: 8px;"></i>
+      {{ day.grouper|date:"l d \d\e F, Y" }}
+    </div>
+    <div class="slots-grid">
+      {% for slot in day.list %}
+        <a href="{% url 'appointment_create' %}?doctor={{ doctor.id }}&date={{ slot.date|date:'Y-m-d' }}&start={{ slot.start_display }}&end={{ slot.end_display }}"
+           class="slot-btn">
+          <i class="fa-regular fa-clock"></i>
+          {{ slot.start_display }} — {{ slot.end_display }}
+        </a>
+      {% endfor %}
+    </div>
+  {% empty %}
+    <div style="text-align: center; padding: 48px 20px; color: var(--text-muted);">
+      <i class="fa-regular fa-calendar-xmark" style="font-size: 2.5rem; margin-bottom: 14px; opacity: 0.4; display: block;"></i>
+      <p style="font-size: 1rem; margin-bottom: 6px;">No hay horarios disponibles en los próximos 7 días.</p>
+      <p style="font-size: 0.85rem;">El doctor puede no haber configurado su calendario aún.</p>
+    </div>
+  {% endfor %}
 
   <div style="margin-top: 32px; text-align: center;">
-    <a href="{% url 'buscar_doctor' %}" class="btn-secondary">Volver al buscador</a>
+    <a href="{% url 'buscar_doctor' %}" class="btn-secondary"><i class="fa-solid fa-arrow-left"></i> Volver al buscador</a>
   </div>
 </div>
 {% endblock %}

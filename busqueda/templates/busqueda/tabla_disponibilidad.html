@@ -1,33 +1,50 @@
 <div class="content-box" style="animation: slideIn 0.3s ease-out;">
   <div style="margin-bottom: 20px;">
     <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.4rem; font-weight: normal; margin-bottom: 8px;">Horarios Disponibles</h3>
-    <p style="color: var(--text-muted); font-size: 0.85rem;">Dr(a). {{ doctor.nombre }}</p>
+    <p style="color: var(--text-muted); font-size: 0.85rem;">
+      Dr(a). {% if profile %}{{ profile.full_name }}{% else %}{{ doctor.username }}{% endif %}
+      {% if profile %}<span style="margin-left: 8px; padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; background: var(--available); color: var(--accent);">{{ profile.get_specialty_display }}</span>{% endif %}
+    </p>
   </div>
 
+  {% if slots %}
   <div class="table-responsive">
     <table class="med-table" style="width: 100%;">
       <thead>
         <tr>
           <th>Fecha</th>
-          <th>Bloque de Hora</th>
+          <th>Horario</th>
+          <th style="text-align: right;">Acción</th>
         </tr>
       </thead>
       <tbody>
-        {% for horario in horarios %}
+        {% for slot in slots %}
         <tr>
-          <td><i class="fa-regular fa-calendar" style="color: var(--text-muted); margin-right: 8px;"></i>{{ horario.fecha }}</td>
-          <td style="color: var(--accent);"><i class="fa-regular fa-clock" style="margin-right: 8px;"></i>{{ horario.hora }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="2" style="text-align: center; padding: 32px; color: var(--text-muted);">
-            No hay horarios disponibles próximamente.
+          <td>
+            <i class="fa-regular fa-calendar" style="color: var(--text-muted); margin-right: 8px;"></i>
+            {{ slot.date_display }}
+          </td>
+          <td style="color: var(--accent);">
+            <i class="fa-regular fa-clock" style="margin-right: 8px;"></i>
+            {{ slot.start_display }} — {{ slot.end_display }}
+          </td>
+          <td style="text-align: right;">
+            <a href="{% url 'appointment_create' %}?doctor={{ doctor.id }}&date={{ slot.date|date:'Y-m-d' }}&start={{ slot.start_display }}&end={{ slot.end_display }}"
+               class="btn-primary" style="padding: 6px 16px; font-size: 0.8rem; border-radius: 8px;">
+              Agendar
+            </a>
           </td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
+  {% else %}
+  <div style="text-align: center; padding: 32px; color: var(--text-muted);">
+    <i class="fa-regular fa-calendar-xmark" style="font-size: 2rem; margin-bottom: 12px; opacity: 0.4; display: block;"></i>
+    No hay horarios disponibles en los próximos 7 días.
+  </div>
+  {% endif %}
 </div>
 
 <style>

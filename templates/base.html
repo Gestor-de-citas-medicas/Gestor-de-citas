@@ -243,48 +243,13 @@
       letter-spacing: 0.5px;
     }
     
-    /* Dynamic Background CSS */
-    .bg-animation {
+    /* Dynamic Background — Antigravity-style particle swarm */
+    #particleCanvas {
       position: fixed;
       top: 0; left: 0;
       width: 100vw; height: 100vh;
       z-index: -1;
-      overflow: hidden;
-      background: var(--bg);
-    }
-    .bg-circle {
-      position: absolute;
-      border-radius: 50%;
-      border: 1.5px solid rgba(45, 212, 191, 0.15);
-      top: var(--y);
-      left: var(--x);
-      width: var(--size);
-      height: var(--size);
-      animation: float-circle var(--duration) linear infinite;
-      box-shadow: 0 0 40px rgba(45, 212, 191, 0.05) inset;
-    }
-    .bg-circle.primary {
-      border-color: rgba(45, 212, 191, 0.2);
-      box-shadow: 0 0 60px rgba(45, 212, 191, 0.08) inset;
-    }
-    .bg-circle.secondary {
-      border-color: rgba(129, 140, 248, 0.15);
-      box-shadow: 0 0 50px rgba(129, 140, 248, 0.05) inset;
-    }
-    
-    @keyframes float-circle {
-      0% {
-        transform: translate(0, 0) rotate(0deg);
-      }
-      33% {
-        transform: translate(var(--mx), var(--my)) rotate(120deg);
-      }
-      66% {
-        transform: translate(calc(var(--mx) * -0.5), calc(var(--my) * 1.5)) rotate(240deg);
-      }
-      100% {
-        transform: translate(0, 0) rotate(360deg);
-      }
+      pointer-events: none;
     }
 
     /* Glassmorphism helpers */
@@ -301,7 +266,7 @@
     header {
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      background: rgba(22, 27, 34, 0.85); /* Slightly less translucent to stay readable */
+      background: rgba(22, 27, 34, 0.85);
     }
 
     {% block extra_css %}{% endblock %}
@@ -309,14 +274,175 @@
 </head>
 <body>
 
-<!-- Fondo Dinámico -->
-<div class="bg-animation">
-  <div class="bg-circle primary" style="--size: 600px; --x: -10vw; --y: -20vh; --mx: 15vw; --my: 15vh; --duration: 35s;"></div>
-  <div class="bg-circle secondary" style="--size: 400px; --x: 70vw; --y: 10vh; --mx: -10vw; --my: 20vh; --duration: 25s;"></div>
-  <div class="bg-circle" style="--size: 800px; --x: 40vw; --y: 60vh; --mx: 20vw; --my: -10vh; --duration: 45s;"></div>
-  <div class="bg-circle secondary" style="--size: 300px; --x: 10vw; --y: 70vh; --mx: 10vw; --my: -20vh; --duration: 28s;"></div>
-  <div class="bg-circle primary" style="--size: 200px; --x: 80vw; --y: -5vh; --mx: -5vw; --my: 10vh; --duration: 20s;"></div>
-</div>
+<!-- Interactive Particle Network Background -->
+<canvas id="particleCanvas"></canvas>
+<script>
+(function() {
+  const canvas = document.getElementById('particleCanvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+  const PARTICLE_COUNT = 100;
+  const CONNECT_DIST = 150;    // max distance to draw a line between particles
+  const MOUSE_RADIUS = 200;    // cursor influence radius
+  const MOUSE_FORCE = 0.04;    // how strongly particles are attracted to cursor
+
+  // Cursor position
+  let mouse = { x: -9999, y: -9999, active: false };
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function createParticle() {
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      size: Math.random() * 2.2 + 0.8,
+      baseAlpha: Math.random() * 0.45 + 0.15,
+      vx: (Math.random() - 0.5) * 0.6,
+      vy: (Math.random() - 0.5) * 0.6,
+      phase: Math.random() * Math.PI * 2,
+    };
+  }
+
+  function init() {
+    resize();
+    particles = [];
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      particles.push(createParticle());
+    }
+  }
+
+  let t = 0;
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+    t += 0.004;
+
+    // ── Update particles ──
+    for (let p of particles) {
+      // Base organic drift
+      p.x += p.vx + Math.sin(t + p.phase) * 0.12;
+      p.y += p.vy + Math.cos(t * 0.8 + p.phase * 1.4) * 0.12;
+
+      // Cursor interaction — attract toward mouse
+      if (mouse.active) {
+        const dx = mouse.x - p.x;
+        const dy = mouse.y - p.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < MOUSE_RADIUS && dist > 1) {
+          const force = MOUSE_FORCE * (1 - dist / MOUSE_RADIUS);
+          p.vx += (dx / dist) * force;
+          p.vy += (dy / dist) * force;
+        }
+      }
+
+      // Damping (prevents runaway velocity)
+      p.vx *= 0.99;
+      p.vy *= 0.99;
+
+      // Wrap around edges
+      if (p.x < -20) p.x = W + 20;
+      if (p.x > W + 20) p.x = -20;
+      if (p.y < -20) p.y = H + 20;
+      if (p.y > H + 20) p.y = -20;
+    }
+
+    // ── Draw connection lines between nearby particles ──
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const a = particles[i], b = particles[j];
+        const dx = a.x - b.x;
+        const dy = a.y - b.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < CONNECT_DIST) {
+          const alpha = (1 - dist / CONNECT_DIST) * 0.18;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.strokeStyle = `rgba(59,130,246,${alpha})`;
+          ctx.lineWidth = 0.6;
+          ctx.stroke();
+        }
+      }
+    }
+
+    // ── Draw lines from cursor to nearby particles ──
+    if (mouse.active) {
+      for (let p of particles) {
+        const dx = mouse.x - p.x;
+        const dy = mouse.y - p.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < MOUSE_RADIUS) {
+          const alpha = (1 - dist / MOUSE_RADIUS) * 0.35;
+          ctx.beginPath();
+          ctx.moveTo(mouse.x, mouse.y);
+          ctx.lineTo(p.x, p.y);
+          ctx.strokeStyle = `rgba(96,165,250,${alpha})`;
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        }
+      }
+
+      // Cursor glow
+      const grad = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 80);
+      grad.addColorStop(0, 'rgba(59,130,246,0.06)');
+      grad.addColorStop(1, 'rgba(59,130,246,0)');
+      ctx.beginPath();
+      ctx.arc(mouse.x, mouse.y, 80, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+
+    // ── Draw particles ──
+    for (let p of particles) {
+      // Particles glow brighter near cursor
+      let alpha = p.baseAlpha;
+      if (mouse.active) {
+        const dx = mouse.x - p.x;
+        const dy = mouse.y - p.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < MOUSE_RADIUS) {
+          alpha += (1 - dist / MOUSE_RADIUS) * 0.5;
+        }
+      }
+      alpha = Math.min(alpha, 1);
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(96,165,250,${alpha})`;
+      ctx.fill();
+
+      // Subtle glow ring on brighter particles
+      if (alpha > 0.4) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size + 3, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(59,130,246,${(alpha - 0.4) * 0.15})`;
+        ctx.fill();
+      }
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  // ── Event Listeners ──
+  document.addEventListener('mousemove', (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    mouse.active = true;
+  });
+
+  document.addEventListener('mouseleave', () => {
+    mouse.active = false;
+  });
+
+  window.addEventListener('resize', resize);
+
+  init();
+  animate();
+})();
+</script>
 
 <!-- Header Global -->
 <header>
@@ -389,6 +515,10 @@
 {% endif %}
 
 {% block extra_js %}{% endblock %}
+
+{% if user.is_authenticated and user.role == 'PATIENT' %}
+  {% include "chatbot/widget.html" %}
+{% endif %}
 
 </body>
 </html>

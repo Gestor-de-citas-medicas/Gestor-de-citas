@@ -1,6 +1,9 @@
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = "tu-secret-key"
 DEBUG = True
@@ -18,6 +21,7 @@ INSTALLED_APPS = [
     "accounts",
     "appointments",
     "busqueda",
+    "chatbot",
 ]
 
 MIDDLEWARE = [
@@ -78,3 +82,8 @@ AUTH_USER_MODEL = "accounts.User"
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
+
+# ── Chatbot IA Configuration ──
+AI_PROVIDER = os.environ.get("AI_PROVIDER", "openai")
+AI_API_KEY = os.environ.get("AI_API_KEY", "")
+AI_MODEL = os.environ.get("AI_MODEL", "gpt-4o-mini")

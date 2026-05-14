@@ -30,10 +30,21 @@ def appointment_create(request):
             appointment = form.save(commit=False)
             appointment.patient = request.user
             appointment.save()
-            messages.success(request, "Appointment scheduled successfully!")
+            messages.success(request, "¡Cita agendada exitosamente!")
             return redirect("appointment_list")
     else:
-        form = AppointmentForm()
+        # Pre-fill form from query params (coming from busqueda/disponibilidad)
+        initial = {}
+        if request.GET.get("doctor"):
+            initial["doctor"] = request.GET["doctor"]
+        if request.GET.get("date"):
+            initial["date"] = request.GET["date"]
+        if request.GET.get("start"):
+            initial["start_time"] = request.GET["start"]
+        if request.GET.get("end"):
+            initial["end_time"] = request.GET["end"]
+
+        form = AppointmentForm(initial=initial)
 
     return render(request, "appointments/create.html", {"form": form})
 

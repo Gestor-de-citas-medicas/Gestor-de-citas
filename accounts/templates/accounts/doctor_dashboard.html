@@ -164,6 +164,7 @@
       background: rgba(0,0,0,0.7);
       backdrop-filter: blur(4px);
       display: flex; align-items: center; justify-content: center;
+      padding: 20px;
       z-index: 9999;
       opacity: 0; pointer-events: none;
       transition: opacity .2s;
@@ -175,7 +176,9 @@
       border: 1px solid var(--border);
       border-radius: 16px;
       padding: 28px 30px;
-      width: 420px;
+      width: 90%;
+      max-width: 480px;
+      margin: auto;
       transform: translateY(20px);
       transition: transform .2s;
     }
@@ -185,6 +188,7 @@
       font-family: 'DM Serif Display', serif;
       font-size: 1.3rem; font-weight: 400;
       margin-bottom: 20px;
+      text-align: center;
     }
 
     .form-row {
