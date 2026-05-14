@@ -45,7 +45,7 @@ def appointment_create(request):
             date   = form.cleaned_data["date"]
             time_  = form.cleaned_data["start_time"]
 
-            weekday = date.weekday()
+            weekday = date.isoweekday()  # FIX: isoweekday() Monday=1, matches DoctorSchedule model
 
             # 🔥 VALIDAR CONTRA CALENDARIO
             schedules = DoctorSchedule.objects.filter(
@@ -81,7 +81,7 @@ def appointment_create(request):
             appointment.end_time = end_dt.time()
 
             appointment.save()
-            messages.success(request, "¡Cita agendada exitosamente!")
+            messages.success(request, "Appointment booked successfully! ✅")
             return redirect("appointment_list")
 
     else:
@@ -187,7 +187,7 @@ def available_slots_api(request):
     except:
         return JsonResponse({"error": "Invalid parameters"}, status=400)
 
-    weekday = appointment_date.weekday()
+    weekday = appointment_date.isoweekday()  # FIX: isoweekday() Monday=1, matches DoctorSchedule model
 
     # 🔥 USAR CALENDARIO REAL
     schedules = DoctorSchedule.objects.filter(
@@ -198,12 +198,21 @@ def available_slots_api(request):
 
     slots = []
 
+    from datetime import date as date_type
+    now = datetime.now()
+    is_today = (appointment_date == date_type.today())
+
     for s in schedules:
         hora = datetime.combine(appointment_date, s.start_time).replace(minute=0)
 
         while hora.time() < s.end_time:
 
             slot_time = hora.time()
+
+            # FIX: skip past slots when querying today
+            if is_today and hora <= now:
+                hora += timedelta(hours=1)
+                continue
 
             is_blocked = ScheduleException.objects.filter(
                 doctor=doctor,

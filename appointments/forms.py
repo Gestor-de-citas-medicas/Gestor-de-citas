@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date as date_type
 
 from .models import Appointment, AppointmentReview
 from accounts.models import DoctorSchedule
@@ -44,7 +44,8 @@ class AppointmentForm(forms.ModelForm):
                     self.data.get("date"), "%Y-%m-%d"
                 ).date()
 
-                weekday = selected_date.weekday()
+                # 🔥 FIX: isoweekday() → Monday=1 … Sunday=7, matches DoctorSchedule model
+                weekday = selected_date.isoweekday()
 
                 schedules = DoctorSchedule.objects.filter(
                     doctor_id=doctor_id,
@@ -53,13 +54,17 @@ class AppointmentForm(forms.ModelForm):
                 )
 
                 choices = []
+                now = datetime.now()
+                is_today = (selected_date == date_type.today())
 
                 for s in schedules:
                     hora = datetime.combine(selected_date, s.start_time).replace(minute=0)
 
                     while hora.time() < s.end_time:
-                        h = hora.time().strftime("%H:%M")
-                        choices.append((h, h))
+                        # 🔥 FIX: skip past slots when booking for today
+                        if not is_today or hora > now:
+                            h = hora.time().strftime("%H:%M")
+                            choices.append((h, h))
                         hora += timedelta(hours=1)
 
                 self.fields["start_time"].choices = choices

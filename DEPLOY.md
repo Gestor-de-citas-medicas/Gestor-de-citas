@@ -158,6 +158,9 @@ python manage.py migrate
 
 # Crear superusuario administrador
 python manage.py createsuperuser
+
+# CARGAR DATOS DE PRUEBA EN INGLÉS (IMPORTANTE)
+python seed_english_db.py
 ```
 
 ---
@@ -313,15 +316,23 @@ python manage.py shell
 
 ---
 
-## 🔐 Credenciales de prueba (para verificar el despliegue)
+## 🔐 Test Credentials (to verify deployment)
 
-Después de ejecutar el seed de datos de prueba:
+After running the English seed script:
 
 ```bash
 python seed_english_db.py
 ```
 
-Puedes usar estas cuentas de ejemplo (si el seed las genera). Si no, crea usuarios desde el panel admin en `http://<IP>/admin/`.
+You can use these example accounts:
+
+| Role | Username | Password |
+|---|---|---|
+| **Patient** | `patient1` | `test1234` |
+| **Doctor** | `dr_james_smith_0` (example) | `doctor1234` |
+| **Admin** | (The one you created) | - |
+
+> 💡 Note: Doctor usernames follow the pattern `dr_firstname_lastname_X`.
 
 ---
 

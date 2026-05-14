@@ -52,7 +52,7 @@ class RoleBasedLoginView(LoginView):
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         form.fields["username"].widget.attrs.update({
-            "placeholder": "Tu usuario o email",
+            "placeholder": "Your username or email",
             "autocomplete": "username"
         })
         form.fields["password"].widget.attrs.update({
@@ -282,7 +282,7 @@ def calendar_events(request):
 
         while current_day <= end:
 
-            if current_day.weekday() == s.day_number:
+            if current_day.isoweekday() == s.day_number:  # FIX: isoweekday() Monday=1, matches DoctorSchedule model
 
                 current_time = datetime.combine(
                     current_day,

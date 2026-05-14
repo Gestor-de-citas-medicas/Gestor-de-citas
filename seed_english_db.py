@@ -111,5 +111,18 @@ def run_seed():
 
     print(f"\n[OK] Successfully created {created_count} English dummy doctors.")
 
+    # Ensure test patient exists
+    patient_username = "patient1"
+    if not User.objects.filter(username=patient_username).exists():
+        User.objects.create(
+            username=patient_username,
+            email="patient1@mamp.com",
+            password=make_password("test1234"),
+            role=User.Roles.PATIENT,
+            first_name="Test",
+            last_name="Patient"
+        )
+        print("[OK] Created test patient (patient1).")
+
 if __name__ == "__main__":
     run_seed()
