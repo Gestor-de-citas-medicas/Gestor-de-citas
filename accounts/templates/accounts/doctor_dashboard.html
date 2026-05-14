@@ -1,303 +1,514 @@
+{% extends "base.html" %}
+
+{% block title %}
+Doctor Dashboard — Calendar
+{% endblock %}
+
+{% block extra_head %}
+
+<link
+  href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css"
+  rel="stylesheet"
+/>
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+<style>
+
+#calendar{
+    background:#111827;
+    padding:20px;
+    border-radius:12px;
+}
+
+.fc{
+    color:white;
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th{
+    border:1px solid #374151;
+}
+
+.fc-timegrid-slot{
+    border-bottom:1px solid #374151 !important;
+}
+
+.fc-col-header-cell{
+    background:#1f2937;
+}
+
+.fc-timegrid-axis{
+    background:#111827;
+}
+
+.fc-event{
+    border:none !important;
+    border-radius:6px !important;
+    padding:2px;
+    font-size:13px;
+    font-weight:600;
+}
+
+.modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.5);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:999;
+}
+
+.modal{
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    width:320px;
+}
+
+.input-control{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+}
+
+.toast{
+    position:fixed;
+    right:20px;
+    bottom:20px;
+    background:#111827;
+    color:white;
+    padding:12px 18px;
+    border-radius:8px;
+    opacity:0;
+    transition:.3s;
+    z-index:9999;
+}
+
+.toast.show{
+    opacity:1;
+}
+
+.toast.success{
+    background:#10b981;
+}
+
+.toast.error{
+    background:#ef4444;
+}
+
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<div class="view-actions-header">
+    <h1>Doctor Calendar</h1>
+</div>
+
+<div id="calendar"></div>
+
+<div class="modal-overlay" id="modalOverlay">
+
+    <div class="modal">
+
+        {% csrf_token %}
+
+        <h2>New Availability</h2>
+
+        <input
+            type="date"
+            id="input-date"
+            class="input-control"
+        >
+
+        <input
+            type="time"
+            id="input-start"
+            class="input-control"
+        >
+
+        <input
+            type="time"
+            id="input-end"
+            class="input-control"
+        >
+
+        <div style="margin-top:15px;display:flex;gap:10px;">
+
+            <button
+                class="btn-primary"
+                onclick="saveEvent()"
+            >
+                Save
+            </button>
+
+            <button
+                class="btn-secondary"
+                onclick="closeModal()"
+            >
+                Cancel
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div id="toast" class="toast"></div>
+
+{% endblock %}
+
+{% block sidebar_extra %}
+
+<button
+    class="btn-add"
+    onclick="openModal()"
+>
+    + New Availability
+</button>
+
+<div style="margin-top:20px;">
+
+    <h3>This Week</h3>
+
+    <div>
+        <span id="stat-available">0</span>
+        <br>
+        Available
+    </div>
+
+    <div style="margin-top:10px;">
+        <span id="stat-booked">0</span>
+        <br>
+        Reserved
+    </div>
+
+    <div style="margin-top:10px;">
+        <span id="stat-blocked">0</span>
+        <br>
+        Blocked
+    </div>
+
+</div>
+
+{% endblock %}
+
 {% block extra_js %}
+
 <script>
 
 let calendar;
 
 function showToast(msg, type='success') {
 
-  const t = document.getElementById('toast');
+    const t = document.getElementById('toast');
 
-  t.textContent = msg;
+    t.textContent = msg;
 
-  t.className = 'toast show ' + type;
+    t.className = 'toast show ' + type;
 
-  setTimeout(() => {
-    t.className = 'toast';
-  }, 3000);
+    setTimeout(() => {
+
+        t.className = 'toast';
+
+    }, 3000);
 
 }
 
 function openModal() {
 
-  document.getElementById('modalOverlay').style.display = 'flex';
+    document.getElementById(
+        'modalOverlay'
+    ).style.display = 'flex';
 
 }
 
 function closeModal() {
 
-  document.getElementById('modalOverlay').style.display = 'none';
+    document.getElementById(
+        'modalOverlay'
+    ).style.display = 'none';
 
 }
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener(
+    'DOMContentLoaded',
+    function () {
 
-  calendar = new FullCalendar.Calendar(
-    document.getElementById('calendar'),
-    {
+        calendar = new FullCalendar.Calendar(
 
-      initialView: 'timeGridWeek',
+            document.getElementById('calendar'),
 
-      timeZone: 'local',
+            {
 
-      height: 'auto',
+                initialView: 'timeGridWeek',
 
-      selectable: true,
+                timeZone: 'local',
 
-      allDaySlot: false,
+                selectable: true,
 
-      nowIndicator: true,
+                allDaySlot: false,
 
-      slotDuration: '01:00:00',
+                nowIndicator: true,
 
-      slotLabelInterval: '01:00',
+                height: 'auto',
 
-      headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'timeGridWeek,timeGridDay'
-      },
+                slotDuration: '01:00:00',
 
-      buttonText: {
-        today: 'Today',
-        week: 'Week',
-        day: 'Day'
-      },
+                slotLabelInterval: '01:00',
 
-      events: function(info, successCallback, failureCallback) {
+                headerToolbar: {
 
-        fetch('/doctor/calendar/events/')
+                    left: 'prev,next today',
 
-          .then(res => res.json())
+                    center: 'title',
 
-          .then(data => {
+                    right: 'timeGridWeek,timeGridDay'
 
-            const now = new Date();
+                },
 
-            const weekStart = new Date(now);
+                events: function(
+                    info,
+                    successCallback,
+                    failureCallback
+                ){
 
-            weekStart.setDate(
-              now.getDate() - now.getDay()
+                    fetch('/doctor/calendar/events/')
+
+                    .then(res => res.json())
+
+                    .then(data => {
+
+                        let avail = 0;
+                        let booked = 0;
+                        let blocked = 0;
+
+                        data.forEach(ev => {
+
+                            if (
+                                ev.extendedProps &&
+                                ev.extendedProps.type === 'booked'
+                            ){
+                                booked++;
+                            }
+                            else if (
+                                ev.extendedProps &&
+                                ev.extendedProps.type === 'blocked'
+                            ){
+                                blocked++;
+                            }
+                            else{
+                                avail++;
+                            }
+
+                        });
+
+                        document.getElementById(
+                            'stat-available'
+                        ).textContent = avail;
+
+                        document.getElementById(
+                            'stat-booked'
+                        ).textContent = booked;
+
+                        document.getElementById(
+                            'stat-blocked'
+                        ).textContent = blocked;
+
+                        successCallback(data);
+
+                    })
+
+                    .catch(err => {
+
+                        console.error(err);
+
+                        failureCallback(err);
+
+                    });
+
+                },
+
+                select: function(info){
+
+                    const start = info.start;
+
+                    const end = info.end;
+
+                    const year =
+                        start.getFullYear();
+
+                    const month =
+                        String(
+                            start.getMonth() + 1
+                        ).padStart(2,'0');
+
+                    const day =
+                        String(
+                            start.getDate()
+                        ).padStart(2,'0');
+
+                    const startHours =
+                        String(
+                            start.getHours()
+                        ).padStart(2,'0');
+
+                    const startMinutes =
+                        String(
+                            start.getMinutes()
+                        ).padStart(2,'0');
+
+                    const endHours =
+                        String(
+                            end.getHours()
+                        ).padStart(2,'0');
+
+                    const endMinutes =
+                        String(
+                            end.getMinutes()
+                        ).padStart(2,'0');
+
+                    document.getElementById(
+                        'input-date'
+                    ).value =
+                        `${year}-${month}-${day}`;
+
+                    document.getElementById(
+                        'input-start'
+                    ).value =
+                        `${startHours}:${startMinutes}`;
+
+                    document.getElementById(
+                        'input-end'
+                    ).value =
+                        `${endHours}:${endMinutes}`;
+
+                    openModal();
+
+                }
+
+            }
+
+        );
+
+        calendar.render();
+
+    }
+
+);
+
+function saveEvent(){
+
+    const date =
+        document.getElementById(
+            'input-date'
+        ).value;
+
+    const start =
+        document.getElementById(
+            'input-start'
+        ).value;
+
+    const end =
+        document.getElementById(
+            'input-end'
+        ).value;
+
+    if(!date || !start || !end){
+
+        showToast(
+            'Complete all fields',
+            'error'
+        );
+
+        return;
+
+    }
+
+    if(start >= end){
+
+        showToast(
+            'End time must be greater',
+            'error'
+        );
+
+        return;
+
+    }
+
+    const selectedDate =
+        new Date(date + 'T12:00:00');
+
+    const dayNumber =
+        selectedDate.getDay();
+
+    fetch('/doctor/schedule/create/', {
+
+        method:'POST',
+
+        headers:{
+
+            'X-CSRFToken':
+                document.querySelector(
+                    '[name=csrfmiddlewaretoken]'
+                ).value,
+
+            'Content-Type':
+                'application/x-www-form-urlencoded'
+
+        },
+
+        body:
+            `day_number=${dayNumber}` +
+            `&start_time=${start}` +
+            `&end_time=${end}`
+
+    })
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        if(data.ok){
+
+            showToast(
+                'Availability saved ✅',
+                'success'
             );
 
-            const weekEnd = new Date(weekStart);
+            calendar.refetchEvents();
 
-            weekEnd.setDate(
-              weekStart.getDate() + 7
+            closeModal();
+
+        }
+        else{
+
+            showToast(
+                'Backend error',
+                'error'
             );
 
-            let avail = 0;
-            let booked = 0;
-            let blocked = 0;
+        }
 
-            data.forEach(ev => {
+    })
 
-              const s = new Date(ev.start);
+    .catch(err => {
 
-              if (s >= weekStart && s < weekEnd) {
+        console.error(err);
 
-                if (ev.extendedProps?.type === 'booked') {
+        showToast(
+            'Server error',
+            'error'
+        );
 
-                  booked++;
-
-                }
-                else if (ev.extendedProps?.type === 'blocked') {
-
-                  blocked++;
-
-                }
-                else {
-
-                  avail++;
-
-                }
-
-              }
-
-            });
-
-            document.getElementById(
-              'stat-available'
-            ).textContent = avail;
-
-            document.getElementById(
-              'stat-booked'
-            ).textContent = booked;
-
-            document.getElementById(
-              'stat-blocked'
-            ).textContent = blocked;
-
-            successCallback(data);
-
-          })
-
-          .catch(err => {
-
-            console.error(err);
-
-            failureCallback(err);
-
-          });
-
-      },
-
-      select: function(info) {
-
-        const start = info.start;
-
-        const end = info.end;
-
-        const year = start.getFullYear();
-
-        const month = String(
-          start.getMonth() + 1
-        ).padStart(2, '0');
-
-        const day = String(
-          start.getDate()
-        ).padStart(2, '0');
-
-        const startHours = String(
-          start.getHours()
-        ).padStart(2, '0');
-
-        const startMinutes = String(
-          start.getMinutes()
-        ).padStart(2, '0');
-
-        const endHours = String(
-          end.getHours()
-        ).padStart(2, '0');
-
-        const endMinutes = String(
-          end.getMinutes()
-        ).padStart(2, '0');
-
-        document.getElementById(
-          'input-date'
-        ).value = `${year}-${month}-${day}`;
-
-        document.getElementById(
-          'input-start'
-        ).value = `${startHours}:${startMinutes}`;
-
-        document.getElementById(
-          'input-end'
-        ).value = `${endHours}:${endMinutes}`;
-
-        openModal();
-
-      }
-
-    }
-  );
-
-  calendar.render();
-
-});
-
-function saveEvent() {
-
-  const date =
-    document.getElementById('input-date').value;
-
-  const start =
-    document.getElementById('input-start').value;
-
-  const end =
-    document.getElementById('input-end').value;
-
-  if (!date || !start || !end) {
-
-    showToast(
-      'Please fill all fields ⚠️',
-      'error'
-    );
-
-    return;
-
-  }
-
-  if (start >= end) {
-
-    showToast(
-      'End time must be after start time ⚠️',
-      'error'
-    );
-
-    return;
-
-  }
-
-  const selectedDate = new Date(
-    date + 'T12:00:00'
-  );
-
-  const dayNumber = selectedDate.getDay();
-
-  fetch('/doctor/schedule/create/', {
-
-    method: 'POST',
-
-    headers: {
-
-      'X-CSRFToken':
-        document.querySelector(
-          '[name=csrfmiddlewaretoken]'
-        ).value,
-
-      'Content-Type':
-        'application/x-www-form-urlencoded'
-
-    },
-
-    body:
-      `day_number=${dayNumber}` +
-      `&start_time=${start}` +
-      `&end_time=${end}`
-
-  })
-
-  .then(res => res.json())
-
-  .then(data => {
-
-    if (data.ok) {
-
-      showToast(
-        'Availability saved ✅',
-        'success'
-      );
-
-      calendar.refetchEvents();
-
-      closeModal();
-
-    }
-    else {
-
-      showToast(
-        'Error saving: ' +
-        (data.error || 'Unknown'),
-        'error'
-      );
-
-    }
-
-  })
-
-  .catch(err => {
-
-    console.error(err);
-
-    showToast(
-      'Server error ❌',
-      'error'
-    );
-
-  });
+    });
 
 }
 
 </script>
+
 {% endblock %}
