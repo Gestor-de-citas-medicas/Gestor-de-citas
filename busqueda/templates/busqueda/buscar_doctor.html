@@ -1,67 +1,109 @@
 {% extends "base.html" %}
 
-{% block title %}Search Doctors{% endblock %}
+{% block title %}Buscar Doctores | MAMP{% endblock %}
+
+{% block extra_css %}
+    .specialty-chips {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      justify-content: center; margin-top: 12px;
+    }
+    .chip {
+      padding: 6px 16px; border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent; color: var(--text-muted);
+      font-size: 0.8rem; cursor: pointer;
+      transition: all .2s; text-decoration: none;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .chip:hover, .chip.active {
+      background: var(--available);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .doctor-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px; margin-top: 24px;
+    }
+    .doctor-card {
+      padding: 24px; display: flex; flex-direction: column;
+      transition: border-color .2s, transform .2s;
+    }
+    .doctor-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .doctor-avatar {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 20px; color: #fff; flex-shrink: 0;
+    }
+    .specialty-badge {
+      display: inline-block; padding: 3px 10px;
+      border-radius: 12px; font-size: 0.72rem;
+      background: var(--available); color: var(--accent);
+      margin-top: 4px;
+    }
+    .empty-state {
+      text-align: center; padding: 60px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state i { font-size: 3rem; margin-bottom: 16px; opacity: 0.4; }
+{% endblock %}
 
 {% block content %}
-
-<div class="content-box" style="margin-bottom: 24px; text-align: center;">
-  <h1 style="font-family: 'DM Serif Display', serif; font-size: 2rem;">
-    Available Doctors
-  </h1>
-  <p style="color: var(--text-muted);">
-    Find specialists and check availability
-  </p>
+<div style="text-align: center; margin-bottom: 24px;">
+  <h1 style="font-family: 'DM Serif Display', serif; font-size: 2rem; font-weight: normal; margin-bottom: 12px;">Doctores Disponibles</h1>
+  <p style="color: var(--text-muted); font-size: 0.95rem;">Encuentra al especialista ideal y consulta sus próximos espacios libres.</p>
 </div>
 
-<!-- SEARCH -->
-<div class="content-box" style="margin-bottom: 24px;">
-  <form method="GET"
-        style="display: flex; gap: 12px; max-width: 600px; margin: 0 auto;">
-
-    <input type="text"
-           name="especialidad"
-           class="input-control"
-           placeholder="Search by name or specialty"
-           value="{{ query }}">
-
-    <button type="submit" class="btn-primary">
-      Search
-    </button>
-
+<div class="content-box" style="margin-bottom: 24px; padding: 20px;">
+  <form method="GET" style="display: flex; gap: 12px; align-items: center; max-width: 600px; margin: 0 auto;">
+    <input type="text" name="especialidad" class="input-control" placeholder="🔍 Buscar por nombre o especialidad" value="{{ query }}" style="flex: 1;">
+    <button type="submit" class="btn-primary" style="padding: 10px 24px; border-radius: 8px;">Buscar</button>
   </form>
+  <div class="specialty-chips">
+    <a href="{% url 'buscar_doctor' %}" class="chip {% if not query %}active{% endif %}">Todos</a>
+    {% for code, label in specialties %}
+    <a href="{% url 'buscar_doctor' %}?especialidad={{ code }}" class="chip {% if query == code %}active{% endif %}">{{ label }}</a>
+    {% endfor %}
+  </div>
 </div>
 
-<!-- GRID DOCTORES -->
-<div style="
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-">
-
-  {% for doctor in doctores %}
-  <div class="content-box" style="display: flex; flex-direction: column; gap: 12px;">
-
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <div style="
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        background: var(--accent);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-      ">
-        {{ doctor.full_name|make_list|first|upper }}
-      </div>
-
-      <div>
-        <div style="font-weight: 600;">Dr. {{ doctor.full_name }}</div>
-        <div style="color: var(--text-muted); font-size: 0.85rem;">
-          {{ doctor.get_specialty_display }}
+<div class="doctor-grid">
+  {% for profile in doctores %}
+    <div class="content-box doctor-card">
+      <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
+        <div class="doctor-avatar">
+          {{ profile.full_name|make_list|first|upper }}
+        </div>
+        <div>
+          <div style="font-weight: 600; font-size: 1.05rem; color: var(--text);">Dr(a). {{ profile.full_name }}</div>
+          <span class="specialty-badge">{{ profile.get_specialty_display }}</span>
         </div>
       </div>
+
+      {% if profile.bio %}
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
+        {{ profile.bio|truncatewords:25 }}
+      </p>
+      {% endif %}
+
+      <div style="display: flex; gap: 10px; margin-top: auto;">
+        <button class="btn-secondary btn-disponibilidad" data-id="{{ profile.user.id }}" style="flex: 1; border-radius: 10px; font-size: 0.88rem;">
+          <i class="fa-regular fa-calendar"></i> Ver Disponibilidad
+        </button>
+        <a href="{% url 'disponibilidad' profile.user.id %}" class="btn-primary" style="flex: 1; border-radius: 10px; font-size: 0.88rem; text-align: center;">
+          <i class="fa-regular fa-clock"></i> Agendar
+        </a>
+      </div>
+    </div>
+  {% empty %}
+    <div class="empty-state" style="grid-column: 1 / -1;">
+      <i class="fa-solid fa-user-doctor"></i>
+      <p style="font-size: 1.1rem; margin-bottom: 8px;">No se encontraron doctores</p>
+      <p style="font-size: 0.9rem;">Intenta con otra especialidad o nombre.</p>
     </div>
 
     <!-- BOTÓN -->

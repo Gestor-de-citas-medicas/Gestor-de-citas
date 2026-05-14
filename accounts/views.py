@@ -34,7 +34,23 @@ class RoleBasedLoginView(LoginView):
 
     template_name = "accounts/login.html"
 
-    redirect_authenticated_user = True
+    def dispatch(self, request, *args, **kwargs):
+        # If user is already authenticated, redirect to their dashboard
+        if request.user.is_authenticated:
+            return redirect_by_role(request.user)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields["username"].widget.attrs.update({
+            "placeholder": "Tu usuario o email",
+            "autocomplete": "username"
+        })
+        form.fields["password"].widget.attrs.update({
+            "placeholder": "••••••••",
+            "autocomplete": "current-password"
+        })
+        return form
 
     def get_success_url(self):
 

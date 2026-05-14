@@ -44,19 +44,141 @@
     inset: 0 !important;
 }
 
-/* 🔥 texto */
-.fc-event-main {
-    padding: 2px;
-    font-size: 11px;
-    font-weight: bold;
-}
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      z-index: 9999;
+      opacity: 0; pointer-events: none;
+      transition: opacity .2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
 
-/* 🔥 elimina fondo raro */
-.fc-timegrid-col-bg {
-    opacity: 0;
-}
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 30px;
+      width: 90%;
+      max-width: 480px;
+      margin: auto;
+      transform: translateY(20px);
+      transition: transform .2s;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
 
-</style>
+    .modal h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.3rem; font-weight: 400;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .form-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+      margin-bottom: 14px;
+    }
+    .form-group {
+      display: flex; flex-direction: column; gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .type-selector {
+      display: flex; gap: 8px;
+    }
+    .type-btn {
+      flex: 1; padding: 9px 6px;
+      border-radius: 8px; border: 1px solid var(--border);
+      background: transparent; color: var(--text-muted);
+      font-size: 0.8rem; cursor: pointer; transition: all .15s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .type-btn.sel-available { background: var(--available); border-color: var(--available-border); color: var(--accent); }
+    .type-btn.sel-blocked   { background: var(--blocked);   border-color: var(--blocked-border);   color: var(--danger); }
+
+    .modal-actions {
+      display: flex; gap: 10px; margin-top: 20px;
+    }
+    .btn-cancel {
+      flex: 1; padding: 11px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text-muted);
+      font-size: 0.88rem; cursor: pointer; font-family: 'DM Sans', sans-serif;
+      transition: border-color .15s;
+    }
+    .btn-cancel:hover { border-color: var(--text-muted); }
+    .btn-save {
+      flex: 2; padding: 11px;
+      background: linear-gradient(135deg, var(--accent), #0ea5e9);
+      border: none; border-radius: 10px;
+      color: #0d1117; font-weight: 600; font-size: 0.88rem;
+      cursor: pointer; font-family: 'DM Sans', sans-serif;
+      transition: opacity .2s;
+    }
+    .btn-save:hover { opacity: .85; }
+    .btn-delete {
+      padding: 11px 18px;
+      background: rgba(248,113,113,0.12);
+      border: 1px solid var(--blocked-border);
+      border-radius: 10px; color: var(--danger);
+      font-size: 0.88rem; cursor: pointer; font-family: 'DM Sans', sans-serif;
+      transition: background .15s;
+    }
+    .btn-delete:hover { background: rgba(248,113,113,0.22); }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 28px; right: 28px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 20px;
+      font-size: 0.88rem; z-index: 10000;
+      transform: translateY(60px); opacity: 0;
+      transition: all .3s;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { border-left: 3px solid var(--accent); }
+    .toast.error   { border-left: 3px solid var(--danger); }
+{% endblock %}
+
+{% block sidebar_extra %}
+  <button class="btn-add" onclick="openModal()">+ Nueva Disponibilidad</button>
+
+  <div class="sidebar-section">
+    <h3>Esta Semana</h3>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-available">0</div>
+        <div class="stat-lbl">Disponibles</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--accent2)" id="stat-booked">0</div>
+        <div class="stat-lbl">Reservadas</div>
+      </div>
+      <div class="stat-card" style="grid-column:span 2">
+        <div class="stat-num" style="color:var(--danger)" id="stat-blocked">0</div>
+        <div class="stat-lbl">Bloqueadas</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <h3>Referencias</h3>
+    <div class="legend-item"><div class="legend-dot dot-available"></div> Disponible</div>
+    <div class="legend-item"><div class="legend-dot dot-booked"></div> Reservada</div>
+    <div class="legend-item"><div class="legend-dot dot-blocked"></div> Bloqueada</div>
+  </div>
+
+  <div class="sidebar-section" style="margin-top:auto">
+    <h3>Instrucciones</h3>
+    <p style="font-size:0.78rem;color:var(--text-muted);line-height:1.5">
+      Haz clic en un slot del calendario para agregar disponibilidad.<br><br>
+      Haz clic en un evento existente para editarlo o eliminarlo.<br><br>
+      Los slots <strong style="color:var(--danger)">bloqueados</strong> no serán visibles para los pacientes.
+    </p>
+  </div>
 {% endblock %}
 
 {% block content %}

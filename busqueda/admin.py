@@ -1,7 +1,4 @@
-
 from django.contrib import admin
-from .models import Doctor, Availability
 
-admin.site.register(Doctor)
-admin.site.register(Availability)
-
+# Los modelos Doctor y Disponibilidad fueron eliminados.
+# La app busqueda ahora usa directamente accounts.DoctorProfile y accounts.DoctorSchedule.

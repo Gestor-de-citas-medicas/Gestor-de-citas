@@ -1,6 +1,9 @@
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = "tu-secret-key"
 DEBUG = True
@@ -18,6 +21,7 @@ INSTALLED_APPS = [
     "accounts",
     "appointments",
     "busqueda",
+    "chatbot",
 ]
 
 MIDDLEWARE = [
@@ -64,7 +68,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "es-co"
 TIME_ZONE = "America/Bogota"
 USE_I18N = True
 USE_TZ = True
@@ -79,11 +83,7 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
-# Email Configuration - Gmail SMTP
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "medicalappointmentmanager@gmail.com"
-EMAIL_HOST_PASSWORD = "cjhmjtsolgllsjca"
-DEFAULT_FROM_EMAIL = "Medical Appointment Manager <medicalappointmentmanager@gmail.com>"
+# ── Chatbot IA Configuration ──
+AI_PROVIDER = os.environ.get("AI_PROVIDER", "openai")
+AI_API_KEY = os.environ.get("AI_API_KEY", "")
+AI_MODEL = os.environ.get("AI_MODEL", "gpt-4o-mini")

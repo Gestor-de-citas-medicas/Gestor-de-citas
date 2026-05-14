@@ -81,17 +81,22 @@ def appointment_create(request):
             appointment.end_time = end_dt.time()
 
             appointment.save()
-
-            try:
-                send_appointment_confirmation(appointment)
-                messages.success(request, "Appointment booked successfully! ✅")
-            except Exception as e:
-                messages.warning(request, f"Booked but email failed: {str(e)}")
-
+            messages.success(request, "¡Cita agendada exitosamente!")
             return redirect("appointment_list")
 
     else:
-        form = AppointmentForm()
+        # Pre-fill form from query params (coming from busqueda/disponibilidad)
+        initial = {}
+        if request.GET.get("doctor"):
+            initial["doctor"] = request.GET["doctor"]
+        if request.GET.get("date"):
+            initial["date"] = request.GET["date"]
+        if request.GET.get("start"):
+            initial["start_time"] = request.GET["start"]
+        if request.GET.get("end"):
+            initial["end_time"] = request.GET["end"]
+
+        form = AppointmentForm(initial=initial)
 
     return render(request, "appointments/create.html", {"form": form})
 
