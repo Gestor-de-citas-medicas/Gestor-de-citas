@@ -1,434 +1,303 @@
-{% extends "base.html" %}
-
-{% block title %}Doctor's Calendar | MAMP{% endblock %}
-
-{% block extra_head %}
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-<style>
-/* ═══════════════════════════════════════════════════
-   SIDEBAR COMPONENTS
-═══════════════════════════════════════════════════ */
-.btn-add {
-  display: block; width: 100%; padding: 11px 14px;
-  margin: 0 0 20px;
-  background: rgba(59,130,246,0.08);
-  border: 1px dashed #3b82f6;
-  color: #3b82f6; font-weight: 600; font-size: 0.85rem;
-  border-radius: 10px; cursor: pointer; text-align: center;
-  transition: background .2s;
-  font-family: 'DM Sans', sans-serif;
-}
-.btn-add:hover { background: rgba(59,130,246,0.18); }
-
-.sidebar-section { padding: 0 16px; margin-bottom: 24px; }
-.sidebar-section h3 {
-  font-size: 0.72rem; font-weight: 700; letter-spacing: 1.2px;
-  text-transform: uppercase; color: #8b949e; margin-bottom: 12px;
-}
-
-.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.stat-card {
-  background: #21262d; border: 1px solid #30363d;
-  border-radius: 10px; padding: 12px 8px; text-align: center;
-}
-.stat-num { font-size: 1.5rem; font-weight: 700; color: #3b82f6; line-height: 1; }
-.stat-num.amber { color: #f59e0b; }
-.stat-num.red   { color: #f87171; }
-.stat-lbl { font-size: 0.68rem; color: #8b949e; text-transform: uppercase; margin-top: 5px; letter-spacing: 0.5px; }
-.stat-card.wide { grid-column: span 2; }
-
-.legend-row {
-  display: flex; align-items: center; gap: 10px;
-  font-size: 0.84rem; color: #c9d1d9; margin-bottom: 8px;
-}
-.ldot {
-  width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0;
-}
-.ldot-available { background: #22c55e; }
-.ldot-booked    { background: #f59e0b; }
-.ldot-blocked   { background: #f87171; }
-
-.sidebar-hint {
-  font-size: 0.75rem; color: #8b949e; line-height: 1.6; padding: 0 16px;
-}
-
-/* ═══════════════════════════════════════════════════
-   CALENDAR WRAPPER
-═══════════════════════════════════════════════════ */
-#calendar-wrap {
-  background: #161b22;
-  border: 1px solid #30363d;
-  border-radius: 14px;
-  padding: 16px;
-  overflow: hidden;
-}
-
-/* ═══════════════════════════════════════════════════
-   FULLCALENDAR DARK OVERRIDE
-   Using FullCalendar CSS custom properties first,
-   then hard overrides for anything that ignores them.
-═══════════════════════════════════════════════════ */
-#calendar-wrap .fc {
-  --fc-page-bg-color:           #161b22;
-  --fc-neutral-bg-color:        #21262d;
-  --fc-neutral-text-color:      #8b949e;
-  --fc-border-color:            #30363d;
-  --fc-button-bg-color:         #21262d;
-  --fc-button-border-color:     #30363d;
-  --fc-button-text-color:       #c9d1d9;
-  --fc-button-hover-bg-color:   #30363d;
-  --fc-button-hover-border-color: #8b949e;
-  --fc-button-active-bg-color:  #3b82f6;
-  --fc-button-active-border-color: #3b82f6;
-  --fc-today-bg-color:          rgba(59,130,246,0.08);
-  --fc-highlight-color:         rgba(59,130,246,0.15);
-  --fc-list-event-hover-bg-color: #21262d;
-  color: #c9d1d9;
-}
-
-/* Toolbar title */
-#calendar-wrap .fc-toolbar-title {
-  font-family: 'DM Serif Display', serif !important;
-  font-size: 1.15rem !important;
-  color: #c9d1d9 !important;
-}
-
-/* Nav buttons */
-#calendar-wrap .fc-button {
-  background: #21262d !important;
-  border-color: #30363d !important;
-  color: #c9d1d9 !important;
-  box-shadow: none !important;
-  font-family: 'DM Sans', sans-serif !important;
-  font-size: 0.82rem !important;
-}
-#calendar-wrap .fc-button:hover {
-  background: #30363d !important;
-  border-color: #8b949e !important;
-  color: #fff !important;
-}
-#calendar-wrap .fc-button-active,
-#calendar-wrap .fc-button-primary:not(:disabled):active {
-  background: #3b82f6 !important;
-  border-color: #3b82f6 !important;
-  color: #fff !important;
-}
-#calendar-wrap .fc-button:focus { box-shadow: none !important; }
-
-/* All cells / grid backgrounds */
-#calendar-wrap .fc-view-harness,
-#calendar-wrap .fc-scrollgrid,
-#calendar-wrap .fc-scroller,
-#calendar-wrap .fc-scroller-liquid-absolute,
-#calendar-wrap table,
-#calendar-wrap thead,
-#calendar-wrap tbody,
-#calendar-wrap tr,
-#calendar-wrap td,
-#calendar-wrap th,
-#calendar-wrap .fc-timegrid-col,
-#calendar-wrap .fc-timegrid-slot,
-#calendar-wrap .fc-timegrid-slot-label,
-#calendar-wrap .fc-daygrid-day {
-  background-color: #161b22 !important;
-  border-color: #30363d !important;
-}
-
-/* Day column headers */
-#calendar-wrap .fc-col-header-cell {
-  background: #21262d !important;
-}
-#calendar-wrap .fc-col-header-cell-cushion {
-  color: #c9d1d9 !important;
-  font-size: 0.8rem !important;
-  font-weight: 600 !important;
-  text-decoration: none !important;
-  padding: 6px 4px !important;
-}
-
-/* Time axis labels */
-#calendar-wrap .fc-timegrid-axis,
-#calendar-wrap .fc-timegrid-slot-label-cushion {
-  color: #8b949e !important;
-  font-size: 0.72rem !important;
-}
-
-/* Today column */
-#calendar-wrap .fc-day-today,
-#calendar-wrap .fc-timegrid-col.fc-day-today {
-  background-color: rgba(59,130,246,0.07) !important;
-}
-
-/* Events */
-#calendar-wrap .fc-event {
-  border-radius: 4px !important;
-  border-width: 0 0 0 3px !important;
-  margin: 1px !important;
-  font-size: 0.73rem !important;
-}
-#calendar-wrap .fc-event-title,
-#calendar-wrap .fc-event-time {
-  color: #fff !important;
-  font-weight: 500 !important;
-}
-#calendar-wrap .fc-timegrid-event-harness {
-  inset-inline-start: 0 !important;
-  inset-inline-end: 0 !important;
-}
-
-/* Scrollbar */
-#calendar-wrap .fc-scroller::-webkit-scrollbar { width: 5px; }
-#calendar-wrap .fc-scroller::-webkit-scrollbar-track { background: #161b22; }
-#calendar-wrap .fc-scroller::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
-
-/* ═══════════════════════════════════════════════════
-   MODAL
-═══════════════════════════════════════════════════ */
-.modal-overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
-  align-items: center; justify-content: center;
-  z-index: 9999; padding: 20px;
-}
-.modal-box {
-  background: #161b22; border: 1px solid #30363d;
-  border-radius: 16px; padding: 28px 30px;
-  width: 90%; max-width: 420px;
-  animation: slideUp .2s ease;
-}
-@keyframes slideUp { from { transform:translateY(20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
-
-.modal-box h2 {
-  font-family: 'DM Serif Display', serif;
-  font-size: 1.25rem; font-weight: 400;
-  color: #c9d1d9; margin-bottom: 20px; text-align: center;
-}
-.modal-field { margin-bottom: 14px; }
-.modal-label {
-  display: block; font-size: 0.75rem; color: #8b949e;
-  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
-}
-.modal-input {
-  width: 100%; padding: 10px 14px;
-  background: #21262d; border: 1px solid #30363d;
-  border-radius: 8px; color: #c9d1d9;
-  font-size: 0.9rem; font-family: 'DM Sans', sans-serif;
-  outline: none; transition: border-color .2s;
-}
-.modal-input:focus { border-color: #3b82f6; }
-.modal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-.modal-save {
-  flex: 2; padding: 11px;
-  background: #3b82f6; border: none;
-  border-radius: 10px; color: #fff;
-  font-weight: 600; font-size: 0.88rem;
-  cursor: pointer; font-family: 'DM Sans', sans-serif;
-  transition: opacity .2s;
-}
-.modal-save:hover { opacity: .85; }
-.modal-dismiss {
-  flex: 1; padding: 11px;
-  background: #21262d; border: 1px solid #30363d;
-  border-radius: 10px; color: #8b949e;
-  font-size: 0.88rem; cursor: pointer;
-  font-family: 'DM Sans', sans-serif; transition: border-color .15s;
-}
-.modal-dismiss:hover { border-color: #8b949e; color: #c9d1d9; }
-
-/* Toast */
-.toast {
-  position: fixed; bottom: 28px; right: 28px;
-  background: #21262d; border: 1px solid #30363d;
-  border-radius: 10px; padding: 12px 20px;
-  font-size: 0.85rem; z-index: 10000;
-  transform: translateY(60px); opacity: 0;
-  transition: all .3s; color: #c9d1d9;
-}
-.toast.show { transform: translateY(0); opacity: 1; }
-.toast.success { border-left: 3px solid #3b82f6; }
-.toast.error   { border-left: 3px solid #f87171; }
-</style>
-{% endblock %}
-
-{% block sidebar_extra %}
-<div style="padding: 16px 16px 0;">
-  <button class="btn-add" onclick="openModal()">+ New Availability</button>
-</div>
-
-<div class="sidebar-section">
-  <h3>This Week</h3>
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-num" id="stat-available">0</div>
-      <div class="stat-lbl">Available</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num amber" id="stat-booked">0</div>
-      <div class="stat-lbl">Booked</div>
-    </div>
-    <div class="stat-card wide">
-      <div class="stat-num red" id="stat-blocked">0</div>
-      <div class="stat-lbl">Blocked</div>
-    </div>
-  </div>
-</div>
-
-<div class="sidebar-section">
-  <h3>Legend</h3>
-  <div class="legend-row"><div class="ldot ldot-available"></div> Available</div>
-  <div class="legend-row"><div class="ldot ldot-booked"></div> Booked</div>
-  <div class="legend-row"><div class="ldot ldot-blocked"></div> Blocked</div>
-</div>
-
-<div class="sidebar-section" style="margin-top: auto;">
-  <h3>Instructions</h3>
-  <p class="sidebar-hint">
-    Click a time slot to add availability.<br><br>
-    Click an existing event to edit or delete it.<br><br>
-    <span style="color:#f87171; font-weight:600;">Blocked</span> slots are hidden from patients.
-  </p>
-</div>
-{% endblock %}
-
-{% block content %}
-<div class="view-actions-header" style="margin-bottom: 20px;">
-  <h1 style="font-family:'DM Serif Display',serif; font-size:1.7rem; font-weight:400;">Doctor's Calendar</h1>
-</div>
-
-<div id="calendar-wrap">
-  <div id="calendar"></div>
-</div>
-
-<!-- Modal -->
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal-box">
-    {% csrf_token %}
-    <h2>New Availability</h2>
-    <div class="modal-field">
-      <label class="modal-label">Date</label>
-      <input type="date" id="input-date" class="modal-input">
-    </div>
-    <div class="modal-row">
-      <div class="modal-field">
-        <label class="modal-label">Start</label>
-        <input type="time" id="input-start" class="modal-input">
-      </div>
-      <div class="modal-field">
-        <label class="modal-label">End</label>
-        <input type="time" id="input-end" class="modal-input">
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="modal-dismiss" onclick="closeModal()">Cancel</button>
-      <button class="modal-save" onclick="saveEvent()">Save Availability</button>
-    </div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div class="toast" id="toast"></div>
-{% endblock %}
-
 {% block extra_js %}
 <script>
+
 let calendar;
 
 function showToast(msg, type='success') {
+
   const t = document.getElementById('toast');
+
   t.textContent = msg;
+
   t.className = 'toast show ' + type;
-  setTimeout(() => { t.className = 'toast'; }, 3000);
+
+  setTimeout(() => {
+    t.className = 'toast';
+  }, 3000);
+
 }
 
 function openModal() {
+
   document.getElementById('modalOverlay').style.display = 'flex';
+
 }
 
 function closeModal() {
+
   document.getElementById('modalOverlay').style.display = 'none';
+
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-  calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
-    initialView: 'timeGridWeek',
-    height: 'auto',
-    selectable: true,
-    allDaySlot: false,
-    nowIndicator: true,
-    slotDuration: '01:00:00',
-    slotLabelInterval: '01:00',
-    headerToolbar: {
-      left: 'prev,next today',
-      center: 'title',
-      right: 'timeGridWeek,timeGridDay'
-    },
-    buttonText: { today: 'Today', week: 'Week', day: 'Day' },
-    events: function(info, successCallback, failureCallback) {
-      fetch('/doctor/calendar/events/')
-        .then(res => res.json())
-        .then(data => {
-          // Count stats
-          const now = new Date();
-          const weekStart = new Date(now); weekStart.setDate(now.getDate() - now.getDay());
-          const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 7);
-          let avail=0, booked=0, blocked=0;
-          data.forEach(ev => {
-            const s = new Date(ev.start);
-            if (s >= weekStart && s < weekEnd) {
-              if (ev.extendedProps?.type === 'booked') booked++;
-              else if (ev.extendedProps?.type === 'blocked') blocked++;
-              else avail++;
-            }
+
+  calendar = new FullCalendar.Calendar(
+    document.getElementById('calendar'),
+    {
+
+      initialView: 'timeGridWeek',
+
+      timeZone: 'local',
+
+      height: 'auto',
+
+      selectable: true,
+
+      allDaySlot: false,
+
+      nowIndicator: true,
+
+      slotDuration: '01:00:00',
+
+      slotLabelInterval: '01:00',
+
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'timeGridWeek,timeGridDay'
+      },
+
+      buttonText: {
+        today: 'Today',
+        week: 'Week',
+        day: 'Day'
+      },
+
+      events: function(info, successCallback, failureCallback) {
+
+        fetch('/doctor/calendar/events/')
+
+          .then(res => res.json())
+
+          .then(data => {
+
+            const now = new Date();
+
+            const weekStart = new Date(now);
+
+            weekStart.setDate(
+              now.getDate() - now.getDay()
+            );
+
+            const weekEnd = new Date(weekStart);
+
+            weekEnd.setDate(
+              weekStart.getDate() + 7
+            );
+
+            let avail = 0;
+            let booked = 0;
+            let blocked = 0;
+
+            data.forEach(ev => {
+
+              const s = new Date(ev.start);
+
+              if (s >= weekStart && s < weekEnd) {
+
+                if (ev.extendedProps?.type === 'booked') {
+
+                  booked++;
+
+                }
+                else if (ev.extendedProps?.type === 'blocked') {
+
+                  blocked++;
+
+                }
+                else {
+
+                  avail++;
+
+                }
+
+              }
+
+            });
+
+            document.getElementById(
+              'stat-available'
+            ).textContent = avail;
+
+            document.getElementById(
+              'stat-booked'
+            ).textContent = booked;
+
+            document.getElementById(
+              'stat-blocked'
+            ).textContent = blocked;
+
+            successCallback(data);
+
+          })
+
+          .catch(err => {
+
+            console.error(err);
+
+            failureCallback(err);
+
           });
-          document.getElementById('stat-available').textContent = avail;
-          document.getElementById('stat-booked').textContent = booked;
-          document.getElementById('stat-blocked').textContent = blocked;
-          successCallback(data);
-        })
-        .catch(err => failureCallback(err));
-    },
-    select: function(info) {
-      document.getElementById('input-date').value = info.startStr.slice(0,10);
-      document.getElementById('input-start').value = info.startStr.slice(11,16);
-      document.getElementById('input-end').value = info.endStr.slice(11,16);
-      openModal();
+
+      },
+
+      select: function(info) {
+
+        const start = info.start;
+
+        const end = info.end;
+
+        const year = start.getFullYear();
+
+        const month = String(
+          start.getMonth() + 1
+        ).padStart(2, '0');
+
+        const day = String(
+          start.getDate()
+        ).padStart(2, '0');
+
+        const startHours = String(
+          start.getHours()
+        ).padStart(2, '0');
+
+        const startMinutes = String(
+          start.getMinutes()
+        ).padStart(2, '0');
+
+        const endHours = String(
+          end.getHours()
+        ).padStart(2, '0');
+
+        const endMinutes = String(
+          end.getMinutes()
+        ).padStart(2, '0');
+
+        document.getElementById(
+          'input-date'
+        ).value = `${year}-${month}-${day}`;
+
+        document.getElementById(
+          'input-start'
+        ).value = `${startHours}:${startMinutes}`;
+
+        document.getElementById(
+          'input-end'
+        ).value = `${endHours}:${endMinutes}`;
+
+        openModal();
+
+      }
+
     }
-  });
+  );
 
   calendar.render();
+
 });
 
 function saveEvent() {
-  const date  = document.getElementById('input-date').value;
-  const start = document.getElementById('input-start').value;
-  const end   = document.getElementById('input-end').value;
 
-  if (!date || !start || !end) { showToast('Please fill all fields ⚠️', 'error'); return; }
-  if (start >= end) { showToast('End time must be after start time ⚠️', 'error'); return; }
+  const date =
+    document.getElementById('input-date').value;
 
-  const dayNumber = new Date(date + 'T12:00:00').getDay();
+  const start =
+    document.getElementById('input-start').value;
+
+  const end =
+    document.getElementById('input-end').value;
+
+  if (!date || !start || !end) {
+
+    showToast(
+      'Please fill all fields ⚠️',
+      'error'
+    );
+
+    return;
+
+  }
+
+  if (start >= end) {
+
+    showToast(
+      'End time must be after start time ⚠️',
+      'error'
+    );
+
+    return;
+
+  }
+
+  const selectedDate = new Date(
+    date + 'T12:00:00'
+  );
+
+  const dayNumber = selectedDate.getDay();
 
   fetch('/doctor/schedule/create/', {
+
     method: 'POST',
+
     headers: {
-      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-      'Content-Type': 'application/x-www-form-urlencoded'
+
+      'X-CSRFToken':
+        document.querySelector(
+          '[name=csrfmiddlewaretoken]'
+        ).value,
+
+      'Content-Type':
+        'application/x-www-form-urlencoded'
+
     },
-    body: `day_number=${dayNumber}&start_time=${start}&end_time=${end}`
+
+    body:
+      `day_number=${dayNumber}` +
+      `&start_time=${start}` +
+      `&end_time=${end}`
+
   })
+
   .then(res => res.json())
+
   .then(data => {
+
     if (data.ok) {
-      showToast('Availability saved ✅', 'success');
+
+      showToast(
+        'Availability saved ✅',
+        'success'
+      );
+
       calendar.refetchEvents();
+
       closeModal();
-    } else {
-      showToast('Error saving: ' + (data.error || 'Unknown'), 'error');
+
     }
+    else {
+
+      showToast(
+        'Error saving: ' +
+        (data.error || 'Unknown'),
+        'error'
+      );
+
+    }
+
   })
-  .catch(() => showToast('Server error ❌', 'error'));
+
+  .catch(err => {
+
+    console.error(err);
+
+    showToast(
+      'Server error ❌',
+      'error'
+    );
+
+  });
+
 }
+
 </script>
 {% endblock %}
