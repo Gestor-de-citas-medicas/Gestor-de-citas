@@ -127,4 +127,61 @@
     </div>
   {% endif %}
 </div>
+
+<!-- Auto-refresh indicator -->
+<div id="refresh-indicator" style="text-align: right; font-size: 0.75rem; color: var(--text-muted); margin-top: 12px; opacity: 0.7;">
+  🔄 Live updates active · Last refreshed: <span id="last-refresh">just now</span>
+</div>
+
+<script>
+(function() {
+  // Auto-refresh the appointments list every 15 seconds
+  const REFRESH_INTERVAL = 15000;
+
+  function updateTimestamp() {
+    const now = new Date();
+    document.getElementById('last-refresh').textContent =
+      now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
+  function refreshAppointments() {
+    fetch(window.location.href, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(res => res.text())
+    .then(html => {
+      // Parse the fetched HTML and extract only the table body
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const newTbody = doc.querySelector('.med-table tbody');
+      const currentTbody = document.querySelector('.med-table tbody');
+      const newEmpty = doc.querySelector('.content-box [style*="text-align: center"]');
+      const currentEmpty = document.querySelector('.content-box [style*="text-align: center"]');
+
+      if (newTbody && currentTbody) {
+        // Only update if content actually changed
+        if (newTbody.innerHTML !== currentTbody.innerHTML) {
+          currentTbody.innerHTML = newTbody.innerHTML;
+          // Flash effect to signal update
+          currentTbody.style.transition = 'opacity 0.3s';
+          currentTbody.style.opacity = '0.4';
+          setTimeout(() => currentTbody.style.opacity = '1', 300);
+        }
+      } else if (newEmpty && !currentTbody) {
+        // Table appeared (appointments added while page was empty)
+        window.location.reload();
+      }
+
+      updateTimestamp();
+    })
+    .catch(() => {
+      // Silently fail — don't disrupt the user
+    });
+  }
+
+  // Start polling
+  setInterval(refreshAppointments, REFRESH_INTERVAL);
+  updateTimestamp();
+})();
+</script>
 {% endblock %}

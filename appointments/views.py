@@ -4,6 +4,10 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Avg, Count
 from datetime import timedelta, time, datetime
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 from .models import Appointment, AppointmentReview
 from .forms import AppointmentForm, AppointmentReviewForm
@@ -81,7 +85,16 @@ def appointment_create(request):
             appointment.end_time = end_dt.time()
 
             appointment.save()
-            messages.success(request, "Appointment booked successfully! ✅")
+
+            # Send confirmation email (non-blocking)
+            try:
+                send_appointment_confirmation(appointment)
+            except Exception as e:
+                logger.warning(f"Confirmation email failed (appointment saved): {e}")
+                messages.warning(request, "Appointment booked ✅ — confirmation email could not be sent.")
+            else:
+                messages.success(request, "Appointment booked successfully! ✅ A confirmation email has been sent.")
+
             return redirect("appointment_list")
 
     else:

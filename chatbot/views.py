@@ -28,15 +28,31 @@ def _build_messages_for_provider(session):
     """
     Construye la lista de mensajes en formato estándar para cualquier provider.
     Incluye el system prompt + los últimos 20 mensajes del historial.
+    Tool messages are reconstructed as proper assistant+tool pairs.
     """
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
 
     history = session.messages.order_by("-created_at")[:20]
     for msg in reversed(list(history)):
         if msg.role == ChatMessage.Role.TOOL:
+            # Reconstruct proper assistant tool_call + tool result pair
             messages.append({
-                "role": "user", 
-                "content": f"Resultado de la herramienta {msg.tool_name or 'desconocida'}: {msg.content}\nUsa esta información para continuar."
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [{
+                    "id": "call_hist",
+                    "type": "function",
+                    "function": {
+                        "name": msg.tool_name or "unknown",
+                        "arguments": "{}"
+                    }
+                }]
+            })
+            messages.append({
+                "role": "tool",
+                "tool_call_id": "call_hist",
+                "name": msg.tool_name or "unknown",
+                "content": msg.content,
             })
         else:
             messages.append({"role": msg.role, "content": msg.content})
