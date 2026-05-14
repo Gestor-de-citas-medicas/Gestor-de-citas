@@ -1,6 +1,6 @@
 <div class="content-box" style="animation: slideIn 0.3s ease-out;">
   <div style="margin-bottom: 20px;">
-    <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.4rem; font-weight: normal; margin-bottom: 8px;">Horarios Disponibles</h3>
+    <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.4rem; font-weight: normal; margin-bottom: 8px;">Available Slots</h3>
     <p style="color: var(--text-muted); font-size: 0.85rem;">
       Dr(a). {% if profile %}{{ profile.full_name }}{% else %}{{ doctor.username }}{% endif %}
       {% if profile %}<span style="margin-left: 8px; padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; background: var(--available); color: var(--accent);">{{ profile.get_specialty_display }}</span>{% endif %}
@@ -12,9 +12,9 @@
     <table class="med-table" style="width: 100%;">
       <thead>
         <tr>
-          <th>Fecha</th>
-          <th>Horario</th>
-          <th style="text-align: right;">Acción</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th style="text-align: right;">Action</th>
         </tr>
       </thead>
       <tbody>
@@ -31,7 +31,7 @@
           <td style="text-align: right;">
             <a href="{% url 'appointment_create' %}?doctor={{ doctor.id }}&date={{ slot.date|date:'Y-m-d' }}&start={{ slot.start_display }}&end={{ slot.end_display }}"
                class="btn-primary" style="padding: 6px 16px; font-size: 0.8rem; border-radius: 8px;">
-              Agendar
+              Book
             </a>
           </td>
         </tr>
@@ -42,7 +42,7 @@
   {% else %}
   <div style="text-align: center; padding: 32px; color: var(--text-muted);">
     <i class="fa-regular fa-calendar-xmark" style="font-size: 2rem; margin-bottom: 12px; opacity: 0.4; display: block;"></i>
-    No hay horarios disponibles en los próximos 7 días.
+    No available slots in the next 7 days.
   </div>
   {% endif %}
 </div>

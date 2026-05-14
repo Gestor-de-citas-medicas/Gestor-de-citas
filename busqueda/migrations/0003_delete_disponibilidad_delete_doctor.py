@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('busqueda', '0002_remove_disponibilidad_estado'),
+        ('busqueda', '0002_alter_availability_doctor'),
     ]
 
     operations = [
         migrations.DeleteModel(
-            name='Disponibilidad',
+            name='Availability',
         ),
         migrations.DeleteModel(
             name='Doctor',

@@ -9,10 +9,6 @@ from django.contrib.auth.decorators import login_required
 from accounts.models import DoctorProfile, DoctorSchedule, ScheduleException, User
 from appointments.models import Appointment
 
-# 🔍 BÚSQUEDA DE DOCTORES
-def buscar_doctores(request):
-    query = request.GET.get('especialidad', '')
-    doctores = DoctorProfile.objects.select_related('user')
 
 @login_required
 def buscar_doctor(request):

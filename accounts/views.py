@@ -27,6 +27,15 @@ def home(request):
     return redirect("login")
 
 
+def redirect_by_role(user):
+    role = getattr(user, 'role', 'PATIENT')
+    if role == "ADMIN":
+        return redirect("admin_dashboard")
+    elif role == "DOCTOR":
+        return redirect("doctor_dashboard")
+    return redirect("patient_dashboard")
+
+
 # =========================
 # LOGIN
 # =========================

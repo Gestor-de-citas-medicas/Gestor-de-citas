@@ -184,7 +184,7 @@
 </style>
 
 <!-- Toggle Button -->
-<button class="chat-toggle" id="chatToggle" onclick="toggleChat()" title="Asistente MAMP">
+<button class="chat-toggle" id="chatToggle" onclick="toggleChat()" title="MAMP Assistant">
   <i class="fa-solid fa-robot"></i>
   <span class="badge-dot"></span>
 </button>
@@ -196,14 +196,17 @@
       <div class="chat-header-avatar">🤖</div>
       <div>
         <div class="chat-header-title">MAMP Assistant</div>
-        <div class="chat-header-subtitle">Asistente médico inteligente</div>
+        <div class="chat-header-subtitle">Intelligent medical assistant</div>
       </div>
     </div>
     <div class="chat-header-actions">
-      <button class="chat-header-btn" onclick="clearChat()" title="Limpiar chat">
+      <button class="chat-header-btn" onclick="openHelpModal()" title="How to use">
+        <i class="fa-solid fa-circle-question"></i>
+      </button>
+      <button class="chat-header-btn" onclick="clearChat()" title="Clear chat">
         <i class="fa-solid fa-trash-can"></i>
       </button>
-      <button class="chat-header-btn" onclick="toggleChat()" title="Cerrar">
+      <button class="chat-header-btn" onclick="toggleChat()" title="Close">
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
@@ -212,18 +215,87 @@
   <div class="chat-messages" id="chatMessages">
     <div class="chat-welcome" id="chatWelcome">
       <div class="chat-welcome-icon">🏥</div>
-      <p><strong>¡Hola!</strong> Soy tu asistente de MAMP.</p>
-      <p style="margin-top: 8px;">Puedo ayudarte a buscar doctores, ver horarios disponibles y agendar citas. ¿En qué te ayudo?</p>
+      <p><strong>Hello!</strong> I am your MAMP assistant.</p>
+      <p style="margin-top: 8px;">I can help you find doctors, view available slots, and book appointments. How can I help you?</p>
     </div>
   </div>
 
   <div class="chat-input-area">
     <input type="text" class="chat-input" id="chatInput"
-           placeholder="Escribe tu mensaje..."
+           placeholder="Type your message..."
            onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); sendMessage();}">
     <button class="chat-send" id="chatSend" onclick="sendMessage()">
       <i class="fa-solid fa-paper-plane"></i>
     </button>
+  </div>
+</div>
+
+<!-- ── Help Modal ── -->
+<div id="helpModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(6px); z-index:10000; align-items:center; justify-content:center; padding:20px;">
+  <div style="background:#161b22; border:1px solid #30363d; border-radius:18px; width:90%; max-width:500px; max-height:85vh; overflow-y:auto; padding:28px 30px; position:relative; box-shadow:0 8px 48px rgba(0,0,0,0.6);">
+    <button onclick="closeHelpModal()" style="position:absolute; top:16px; right:16px; background:rgba(255,255,255,0.06); border:1px solid #30363d; color:#8b949e; width:32px; height:32px; border-radius:8px; cursor:pointer; font-size:1rem;">✕</button>
+
+    <div style="text-align:center; margin-bottom:24px;">
+      <div style="font-size:2.5rem; margin-bottom:8px;">📖</div>
+      <h2 style="font-family:'DM Serif Display',serif; font-size:1.4rem; font-weight:400; color:#c9d1d9;">How to Use MAMP</h2>
+      <p style="font-size:0.8rem; color:#8b949e;">Your complete guide to the Medical Appointment Platform</p>
+    </div>
+
+    <!-- Patients section -->
+    <div style="margin-bottom:22px;">
+      <div style="background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.25); border-radius:8px; padding:6px 12px; font-size:0.8rem; color:#3b82f6; font-weight:600; display:inline-block; margin-bottom:14px;">👤 For Patients</div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div style="background:#21262d; border:1px solid #30363d; border-radius:10px; padding:14px;">
+          <div style="color:#3b82f6; font-weight:600; font-size:0.85rem; margin-bottom:4px;">🔍 Find a Doctor</div>
+          <p style="font-size:0.8rem; color:#8b949e; line-height:1.5;">Go to <strong style="color:#c9d1d9;">Find Doctor</strong> in the sidebar. Filter by specialty, name, or city. Click <strong style="color:#c9d1d9;">View Availability</strong> on any card to see open slots, then click <strong style="color:#c9d1d9;">Book</strong>.</p>
+        </div>
+        <div style="background:#21262d; border:1px solid #30363d; border-radius:10px; padding:14px;">
+          <div style="color:#3b82f6; font-weight:600; font-size:0.85rem; margin-bottom:4px;">🤖 Book via AI Assistant</div>
+          <p style="font-size:0.8rem; color:#8b949e; line-height:1.5;">Click the robot button (bottom-right corner). Type what you need, e.g. <em style="color:#c9d1d9;">"I need a psychiatrist"</em> or <em style="color:#c9d1d9;">"Book me with a cardiologist for tomorrow"</em>. The assistant handles the rest.</p>
+        </div>
+        <div style="background:#21262d; border:1px solid #30363d; border-radius:10px; padding:14px;">
+          <div style="color:#3b82f6; font-weight:600; font-size:0.85rem; margin-bottom:4px;">📋 My Appointments</div>
+          <p style="font-size:0.8rem; color:#8b949e; line-height:1.5;">Go to <strong style="color:#c9d1d9;">My Appointments</strong> to track all your bookings. You can cancel pending ones or leave a review after completed visits.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Tips -->
+    <div style="margin-bottom:22px;">
+      <div style="background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.25); border-radius:8px; padding:6px 12px; font-size:0.8rem; color:#22c55e; font-weight:600; display:inline-block; margin-bottom:14px;">🤖 AI Assistant Tips</div>
+      <div style="background:#21262d; border:1px solid #30363d; border-radius:10px; padding:14px;">
+        <ul style="font-size:0.8rem; color:#8b949e; line-height:2; padding-left:18px; margin:0;">
+          <li>Say what type of doctor you need (e.g. <em style="color:#c9d1d9;">"psychiatrist"</em>, <em style="color:#c9d1d9;">"cardiologist"</em>, <em style="color:#c9d1d9;">"addiction specialist"</em>)</li>
+          <li>The assistant will list available doctors — pick one by name</li>
+          <li>Provide a date like <em style="color:#c9d1d9;">"tomorrow"</em> or <em style="color:#c9d1d9;">"May 20th"</em></li>
+          <li>Confirm the slot when prompted and the booking is created instantly</li>
+          <li>Use 🗑️ to clear chat history and start a fresh conversation</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Statuses -->
+    <div>
+      <div style="background:rgba(248,113,113,0.1); border:1px solid rgba(248,113,113,0.25); border-radius:8px; padding:6px 12px; font-size:0.8rem; color:#f87171; font-weight:600; display:inline-block; margin-bottom:14px;">📊 Appointment Statuses</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+        <div style="background:#21262d; border:1px solid #30363d; border-radius:8px; padding:10px;">
+          <span style="background:rgba(234,179,8,0.15); color:#eab308; padding:2px 8px; border-radius:10px; font-size:0.72rem; font-weight:600;">PENDING</span>
+          <p style="font-size:0.75rem; color:#8b949e; margin-top:6px;">Awaiting doctor confirmation.</p>
+        </div>
+        <div style="background:#21262d; border:1px solid #30363d; border-radius:8px; padding:10px;">
+          <span style="background:rgba(59,130,246,0.15); color:#3b82f6; padding:2px 8px; border-radius:10px; font-size:0.72rem; font-weight:600;">CONFIRMED</span>
+          <p style="font-size:0.75rem; color:#8b949e; margin-top:6px;">Doctor confirmed your visit.</p>
+        </div>
+        <div style="background:#21262d; border:1px solid #30363d; border-radius:8px; padding:10px;">
+          <span style="background:rgba(34,197,94,0.15); color:#22c55e; padding:2px 8px; border-radius:10px; font-size:0.72rem; font-weight:600;">COMPLETED</span>
+          <p style="font-size:0.75rem; color:#8b949e; margin-top:6px;">Visit done — you can review!</p>
+        </div>
+        <div style="background:#21262d; border:1px solid #30363d; border-radius:8px; padding:10px;">
+          <span style="background:rgba(248,113,113,0.15); color:#f87171; padding:2px 8px; border-radius:10px; font-size:0.72rem; font-weight:600;">CANCELLED</span>
+          <p style="font-size:0.75rem; color:#8b949e; margin-top:6px;">Appointment was cancelled.</p>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -313,7 +385,7 @@
     })
     .catch(err => {
       removeTyping(typingEl);
-      appendMessage('assistant', '⚠️ Error de conexión. Intenta de nuevo.');
+      appendMessage('assistant', '⚠️ Connection error. Try again.');
     })
     .finally(() => {
       isLoading = false;
@@ -373,5 +445,15 @@
       messagesEl.scrollTop = messagesEl.scrollHeight;
     });
   }
+  window.openHelpModal = function() {
+    const m = document.getElementById('helpModal');
+    m.style.display = 'flex';
+  };
+  window.closeHelpModal = function() {
+    document.getElementById('helpModal').style.display = 'none';
+  };
+  document.getElementById('helpModal').addEventListener('click', function(e) {
+    if (e.target === this) closeHelpModal();
+  });
 })();
 </script>

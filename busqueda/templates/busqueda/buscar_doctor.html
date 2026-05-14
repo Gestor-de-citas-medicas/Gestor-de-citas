@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Buscar Doctores | MAMP{% endblock %}
+{% block title %}Find Doctors | MAMP{% endblock %}
 
 {% block extra_css %}
     .specialty-chips {
@@ -54,17 +54,17 @@
 
 {% block content %}
 <div style="text-align: center; margin-bottom: 24px;">
-  <h1 style="font-family: 'DM Serif Display', serif; font-size: 2rem; font-weight: normal; margin-bottom: 12px;">Doctores Disponibles</h1>
+  <h1 style="font-family: 'DM Serif Display', serif; font-size: 2rem; font-weight: normal; margin-bottom: 12px;">Available Doctors</h1>
   <p style="color: var(--text-muted); font-size: 0.95rem;">Encuentra al especialista ideal y consulta sus próximos espacios libres.</p>
 </div>
 
 <div class="content-box" style="margin-bottom: 24px; padding: 20px;">
   <form method="GET" style="display: flex; gap: 12px; align-items: center; max-width: 600px; margin: 0 auto;">
-    <input type="text" name="especialidad" class="input-control" placeholder="🔍 Buscar por nombre o especialidad" value="{{ query }}" style="flex: 1;">
-    <button type="submit" class="btn-primary" style="padding: 10px 24px; border-radius: 8px;">Buscar</button>
+    <input type="text" name="especialidad" class="input-control" placeholder="🔍 Search by name or specialty" value="{{ query }}" style="flex: 1;">
+    <button type="submit" class="btn-primary" style="padding: 10px 24px; border-radius: 8px;">Search</button>
   </form>
   <div class="specialty-chips">
-    <a href="{% url 'buscar_doctor' %}" class="chip {% if not query %}active{% endif %}">Todos</a>
+    <a href="{% url 'buscar_doctor' %}" class="chip {% if not query %}active{% endif %}">All</a>
     {% for code, label in specialties %}
     <a href="{% url 'buscar_doctor' %}?especialidad={{ code }}" class="chip {% if query == code %}active{% endif %}">{{ label }}</a>
     {% endfor %}
@@ -92,31 +92,19 @@
 
       <div style="display: flex; gap: 10px; margin-top: auto;">
         <button class="btn-secondary btn-disponibilidad" data-id="{{ profile.user.id }}" style="flex: 1; border-radius: 10px; font-size: 0.88rem;">
-          <i class="fa-regular fa-calendar"></i> Ver Disponibilidad
+          <i class="fa-regular fa-calendar"></i> View Availability
         </button>
         <a href="{% url 'disponibilidad' profile.user.id %}" class="btn-primary" style="flex: 1; border-radius: 10px; font-size: 0.88rem; text-align: center;">
-          <i class="fa-regular fa-clock"></i> Agendar
+          <i class="fa-regular fa-clock"></i> Book
         </a>
       </div>
     </div>
   {% empty %}
     <div class="empty-state" style="grid-column: 1 / -1;">
       <i class="fa-solid fa-user-doctor"></i>
-      <p style="font-size: 1.1rem; margin-bottom: 8px;">No se encontraron doctores</p>
-      <p style="font-size: 0.9rem;">Intenta con otra especialidad o nombre.</p>
+      <p style="font-size: 1.1rem; margin-bottom: 8px;">No doctors found</p>
+      <p style="font-size: 0.9rem;">Try another specialty or name.</p>
     </div>
-
-    <!-- BOTÓN -->
-    <button class="btn-secondary btn-disponibilidad"
-            data-id="{{ doctor.user.id }}">
-      Check Availability
-    </button>
-
-  </div>
-  {% empty %}
-  <p style="color: var(--text-muted); grid-column: 1/-1; text-align: center;">
-    No doctors found
-  </p>
   {% endfor %}
 
 </div>
@@ -131,67 +119,13 @@ document.querySelectorAll('.btn-disponibilidad').forEach(btn => {
         const doctorId = this.dataset.id;
 
         fetch(`/busqueda/disponibilidad-ajax/${doctorId}/`)
-            .then(res => res.json())
-            .then(data => {
-
-                let html = "<div class='content-box'><h3>Available Slots</h3>";
-
-                if (data.length === 0) {
-                    html += "<p>No availability</p>";
-                } else {
-
-                    // 🔥 AGRUPAR POR FECHA
-                    const grouped = {};
-
-                    data.forEach(slot => {
-                        if (!grouped[slot.fecha]) {
-                            grouped[slot.fecha] = [];
-                        }
-                        grouped[slot.fecha].push(slot.hora);
-                    });
-
-                    // 🔥 MOSTRAR BIEN
-                    for (const fecha in grouped) {
-
-                        html += `
-                          <div style="margin-bottom:15px;">
-                            <div style="font-weight:600; margin-bottom:6px;">
-                              ${fecha}
-                            </div>
-
-                            <div style="
-                              display:flex;
-                              flex-wrap:wrap;
-                              gap:8px;
-                            ">
-                        `;
-
-                        grouped[fecha].forEach(hora => {
-                            html += `
-                              <span style="
-                                background: var(--available);
-                                color: var(--accent);
-                                padding:6px 10px;
-                                border-radius:8px;
-                                font-size:0.85rem;
-                                font-weight:500;
-                              ">
-                                ${hora}
-                              </span>
-                            `;
-                        });
-
-                        html += "</div></div>";
-                    }
-                }
-
-                html += "</div>";
-
+            .then(res => res.text())
+            .then(html => {
                 const container = document.getElementById('horarios-container');
                 container.innerHTML = html;
-
                 container.scrollIntoView({ behavior: "smooth" });
-            });
+            })
+            .catch(err => console.error(err));
 
     });
 });
